@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ff6b35">
+    <title>🍔 Burger Shop Nha Trang</title>
+    <link rel="manifest" href="data:application/json,{\"name\":\"Burger Shop Nha Trang\",\"short_name\":\"BurgerShop\",\"icons\":[],\"start_url\":\"/\",\"display\":\"standalone\",\"theme_color\":\"#ff6b35\",\"background_color\":\"#ffffff\"}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --primary-dark: #e85a27;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --info: #3498db;
+            --surface-0: #fafafa;
+            --surface-1: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border: #ecf0f1;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface-0: #1a1a1a;
+                --surface-1: #2d2d2d;
+                --text-primary: #ecf0f1;
+                --text-secondary: #bdc3c7;
+                --border: #444;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface-0);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .container { max-width: 100%; margin: 0 auto; padding: 0 env(safe-area-inset-left, 0) 0 env(safe-area-inset-right, 0); }
+        .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            padding-top: calc(1rem + env(safe-area-inset-top, 0));
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 0.25rem; }
+        .header p { font-size: 13px; opacity: 0.9; }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: var(--text-primary); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 1rem;
+        }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-title { font-weight: 600; margin-bottom: 8px; color: var(--text-primary); font-size: 14px; }
+        .card-value { font-size: 28px; font-weight: 700; color: var(--primary); }
+        .card-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1rem; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px 0; border-bottom: 2px solid var(--border); color: var(--text-secondary); font-weight: 600; }
+        td { padding: 10px 0; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(255,107,53,0.1); }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 8px 0;
+        }
+        button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+        }
+        button.secondary:hover { background: rgba(255, 107, 53, 0.1); }
+        button.small {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0 4px 0 0;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .alert.warning { background: rgba(243, 156, 18, 0.1); color: var(--text-primary); border-left: 3px solid var(--warning); }
+        .alert.danger { background: rgba(231, 76, 60, 0.1); color: var(--text-primary); border-left: 3px solid var(--danger); }
+        .alert.success { background: rgba(46, 204, 113, 0.1); color: var(--text-primary); border-left: 3px solid var(--success); }
+        .alert.info { background: rgba(52, 152, 219, 0.1); color: var(--text-primary); border-left: 3px solid var(--info); }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge.success { background: rgba(46, 204, 113, 0.2); color: var(--success); }
+        .badge.warning { background: rgba(243, 156, 18, 0.2); color: var(--warning); }
+        .badge.danger { background: rgba(231, 76, 60, 0.2); color: var(--danger); }
+        .badge.info { background: rgba(52, 152, 219, 0.2); color: var(--info); }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 4px; font-size: 13px; }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .full { grid-column: 1 / -1; }
+
+        .currency-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1rem;
+        }
+        .currency-toggle button {
+            flex: 1;
+            margin: 0;
+            border-radius: 0;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 10px;
+        }
+        .currency-toggle button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .currency-toggle button:first-child { border-radius: 6px 0 0 6px; }
+        .currency-toggle button:last-child { border-radius: 0 6px 6px 0; }
+
+        .recipe-input {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .recipe-input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .recipe-input-title { font-weight: 600; color: var(--text-primary); }
+        .recipe-input-price { color: var(--primary); font-weight: 600; font-size: 14px; }
+        .recipe-input input { padding: 8px; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-box {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; }
+        .stat-value { font-size: 20px; font-weight: 700; color: var(--primary); }
+
+        @media (max-width: 600px) {
+            .tab { min-width: 70px; font-size: 11px; }
+            .card-value { font-size: 22px; }
+            .grid-2 { grid-template-columns: 1fr; }
+            table { font-size: 12px; }
+        }
+
+        .no-print { }
+        @media print {
+            .header, .tabs, .no-print, button { display: none !important; }
+            .content { padding: 0; }
+            .card { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1>🍔 Мой бургер-шоп</h1>
+        <p>Нячанг • Неделя <span id="week-number">40</span></p>
+    </div>
+
+    <div class="tabs no-print">
+        <button class="tab active" onclick="showTab(0)">📊 Обзор</button>
+        <button class="tab" onclick="showTab(1)">🔄 Смена</button>
+        <button class="tab" onclick="showTab(2)">📦 Товары</button>
+        <button class="tab" onclick="showTab(3)">💰 Финансы</button>
+        <button class="tab" onclick="showTab(4)">📋 Закупки</button>
+    </div>
+
+    <div class="content">
+        <!-- TAB 0: DASHBOARD -->
+        <div class="section active">
+            <div class="currency-toggle no-print">
+                <button class="active" onclick="setCurrency('vnd')">₫ VND</button>
+                <button onclick="setCurrency('rub')">₽ RUB</button>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Выручка</div>
+                    <div class="card-value" id="revenue-display">0</div>
+                    <div class="card-detail">на неделю</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Маржа</div>
+                    <div class="card-value" id="margin-percent-display">0%</div>
+                    <div class="card-detail" id="margin-display">на неделю</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Продажи по блюдам</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Блюдо</th>
+                            <th style="text-align:center;">Продано</th>
+                            <th style="text-align:right;">Маржа</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboard-sales">
+                        <tr><td colspan="3" style="text-align:center;color:var(--text-secondary);">Нет данных</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card no-print">
+                <button class="secondary" onclick="exportDashboard()">📥 Экспорт отчёта</button>
+            </div>
+        </div>
+
+        <!-- TAB 1: SHIFT MANAGEMENT -->
+        <div class="section">
+            <div id="shift-status-card" class="card">
+                <div class="card-title" id="shift-title">Смена не начата</div>
+                <div id="shift-time" style="font-size:12px;color:var(--text-secondary);margin:8px 0;"></div>
+                <button id="shift-toggle-btn" onclick="toggleShift()" style="background:var(--success);">▶ Начать смену</button>
+                <button class="secondary no-print" onclick="clearAllData()" style="margin-top:0.5rem;">🗑 Очистить всё</button>
+            </div>
+
+            <div id="shift-active-section" style="display:none;">
+                <div class="card">
+                    <div class="card-title">Продажи за смену</div>
+                    <div id="shift-recipes-list"></div>
+                    <button onclick="saveShiftSales()">💾 Сохранить продажи</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Предварительный расход товаров</div>
+                    <table>
+                        <thead>
+                            <tr><th>Продукт</th><th style="text-align:right;">Расход</th><th style="text-align:right;">Остаток</th></tr>
+                        </thead>
+                        <tbody id="consumption-body">
+                            <tr><td colspan="3" style="text-align:center;color:var(--text-secondary);">Сохрани продажи</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Себестоимость за смену</div>
+                    <div style="font-size:20px;font-weight:700;color:var(--primary);" id="shift-cost-display">0 ₫</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:8px;" id="shift-margin-display">маржа: —</div>
+                </div>
+
+                <button id="shift-end-btn" onclick="endShift()" style="background:var(--danger);margin-top:1rem;">⏹ Завершить смену</button>
+            </div>
+
+            <div id="shift-summary-card" style="display:none;" class="card">
+                <div class="card-title">✅ Смена завершена</div>
+                <table id="shift-summary-table"></table>
+                <div style="margin-top:1rem;display:flex;gap:8px;">
+                    <button onclick="exportShift()" class="secondary">📥 Экспорт смены</button>
+                    <button onclick="startNewShift()">▶ Новая смена</button>
+                </div>
+            </div>
+
+            <div id="shift-alerts"></div>
+        </div>
+
+        <!-- TAB 2: INVENTORY -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">Остатки товаров</div>
+                <input type="text" id="inventory-search" placeholder="Поиск товара..." onkeyup="filterInventory()" class="no-print">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th style="text-align:center;">Остаток</th>
+                            <th style="text-align:center;">Норма</th>
+                            <th style="text-align:center;">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table"></tbody>
+                </table>
+            </div>
+
+            <div class="card no-print">
+                <div class="card-title">Внесение корректировок</div>
+                <div class="form-group">
+                    <label>Выбери товар:</label>
+                    <select id="inventory-select" onchange="showInventoryInput()">
+                        <option value="">-- Выбери --</option>
+                    </select>
+                </div>
+                <div id="inventory-input-container" style="display:none;">
+                    <div class="form-group">
+                        <label>Новое количество:</label>
+                        <input type="number" id="inventory-new-qty" placeholder="0" step="0.1">
+                    </div>
+                    <button onclick="updateInventoryItem()">💾 Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FINANCES -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">Финансовый отчёт за неделю</div>
+                <table>
+                    <tr style="border-bottom:2px solid var(--border);">
+                        <td style="font-weight:600;padding:12px 0;">Выручка</td>
+                        <td style="text-align:right;font-weight:600;color:var(--success);padding:12px 0;" id="fin-revenue">0</td>
+                    </tr>
+                    <tr>
+                        <td>— Сырьё & овощи</td>
+                        <td style="text-align:right;" id="fin-raw">0</td>
+                    </tr>
+                    <tr>
+                        <td>— Упаковка</td>
+                        <td style="text-align:right;" id="fin-packaging">0</td>
+                    </tr>
+                    <tr>
+                        <td>— Отходы</td>
+                        <td style="text-align:right;color:var(--danger);" id="fin-waste">0</td>
+                    </tr>
+                    <tr style="border-top:2px solid var(--border);border-bottom:2px solid var(--border);">
+                        <td style="font-weight:600;padding:12px 0;">Себестоимость</td>
+                        <td style="text-align:right;font-weight:600;padding:12px 0;" id="fin-cost">0</td>
+                    </tr>
+                    <tr style="font-weight:600;font-size:16px;">
+                        <td>Чистая маржа</td>
+                        <td style="text-align:right;color:var(--primary);" id="fin-margin">0</td>
+                    </tr>
+                </table>
+            </div>
+            <div id="waste-alerts"></div>
+        </div>
+
+        <!-- TAB 4: WEEKLY PURCHASES -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">📊 Рекомендация закупок на неделю</div>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:1rem;">
+                    Система рассчитывает потребность на основе:
+                    <br>• Средних продаж за предыдущие дни
+                    <br>• Текущих остатков на складе
+                    <br>• % отходов для каждого продукта
+                </p>
+                <button onclick="generateWeeklyPurchase()" class="no-print">🔄 Рассчитать закупки</button>
+            </div>
+
+            <div class="card" id="purchase-summary" style="display:none;">
+                <div class="card-title">💡 На основе данных:</div>
+                <table>
+                    <tr><td>Среднее продаж/день:</td><td style="text-align:right;font-weight:600;" id="stats-avg-daily">0</td></tr>
+                    <tr><td>Дней в цикле:</td><td style="text-align:right;font-weight:600;">7</td></tr>
+                    <tr><td>Прогноз продаж:</td><td style="text-align:right;font-weight:600;" id="stats-forecast">0</td></tr>
+                    <tr style="border-top:1px solid var(--border);"><td>Бюджет закупок:</td><td style="text-align:right;font-weight:600;color:var(--primary);" id="stats-budget">0</td></tr>
+                </table>
+            </div>
+
+            <div class="card" id="purchase-list-card" style="display:none;">
+                <div class="card-title">🛒 Список закупок</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th style="text-align:right;">Потребно</th>
+                            <th style="text-align:right;">Есть</th>
+                            <th style="text-align:right;">К закупке</th>
+                            <th style="text-align:right;">Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchase-body"></tbody>
+                </table>
+                <div style="margin-top:1rem;padding-top:1rem;border-top:2px solid var(--border);">
+                    <strong>Итого на закупку: <span id="purchase-total" style="color:var(--primary);">0</span></strong>
+                </div>
+                <button onclick="exportPurchaseList()" class="secondary no-print" style="margin-top:1rem;">📥 Экспорт списка</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============ STATE & STORAGE ============
+let currentCurrency = 'vnd';
+const exchangeRate = 0.0025;
+const STORAGE_KEY_WEEK = 'burgerShop_week_';
+const STORAGE_KEY_INVENTORY = 'burgerShop_inventory';
+const STORAGE_KEY_SHIFT = 'burgerShop_currentShift';
+
+// Базовые данные
+const techCards = [
+    {
+        id: 'burger_classic',
+        name: 'Классический бургер',
+        price_vnd: 165000,
+        portion_weight_g: 350,
+        ingredients: [
+            { name: 'Булка бургерная', weight_g: 75, unit: 'g', price_per_unit_vnd: 800, waste_percent: 3 },
+            { name: 'Фарш мяса (говядина)', weight_g: 200, unit: 'g', price_per_unit_vnd: 280, waste_percent: 5 },
+            { name: 'Огурец свежий', weight_g: 20, unit: 'g', price_per_unit_vnd: 15, waste_percent: 15 },
+            { name: 'Помидор свежий', weight_g: 15, unit: 'g', price_per_unit_vnd: 20, waste_percent: 10 },
+            { name: 'Листья салата', weight_g: 10, unit: 'g', price_per_unit_vnd: 25, waste_percent: 8 },
+            { name: 'Соус (майонез+кетчуп)', weight_ml: 30, unit: 'ml', price_per_unit_vnd: 2, waste_percent: 0 },
+            { name: 'Упаковка (бумага, коробка)', weight_g: 20, unit: 'box', price_per_unit_vnd: 3000, waste_percent: 0 }
+        ]
+    },
+    {
+        id: 'burger_double',
+        name: 'Двойной бургер (Премиум)',
+        price_vnd: 245000,
+        portion_weight_g: 450,
+        ingredients: [
+            { name: 'Булка бургерная', weight_g: 75, unit: 'g', price_per_unit_vnd: 800, waste_percent: 3 },
+            { name: 'Фарш мяса (говядина)', weight_g: 400, unit: 'g', price_per_unit_vnd: 280, waste_percent: 5 },
+            { name: 'Огурец свежий', weight_g: 30, unit: 'g', price_per_unit_vnd: 15, waste_percent: 15 },
+            { name: 'Помидор свежий', weight_g: 25, unit: 'g', price_per_unit_vnd: 20, waste_percent: 10 },
+            { name: 'Листья салата', weight_g: 15, unit: 'g', price_per_unit_vnd: 25, waste_percent: 8 },
+            { name: 'Соус (майонез+кетчуп)', weight_ml: 40, unit: 'ml', price_per_unit_vnd: 2, waste_percent: 0 },
+            { name: 'Упаковка (большая коробка)', weight_g: 25, unit: 'box', price_per_unit_vnd: 4500, waste_percent: 0 }
+        ]
+    },
+    {
+        id: 'burger_vegan',
+        name: 'Овощной бургер',
+        price_vnd: 135000,
+        portion_weight_g: 320,
+        ingredients: [
+            { name: 'Булка бургерная', weight_g: 75, unit: 'g', price_per_unit_vnd: 800, waste_percent: 3 },
+            { name: 'Грибы (шампиньоны, обжаренные)', weight_g: 120, unit: 'g', price_per_unit_vnd: 45, waste_percent: 12 },
+            { name: 'Огурец свежий', weight_g: 25, unit: 'g', price_per_unit_vnd: 15, waste_percent: 15 },
+            { name: 'Помидор свежий', weight_g: 20, unit: 'g', price_per_unit_vnd: 20, waste_percent: 10 },
+            { name: 'Листья салата', weight_g: 15, unit: 'g', price_per_unit_vnd: 25, waste_percent: 8 },
+            { name: 'Авокадо', weight_g: 30, unit: 'g', price_per_unit_vnd: 120, waste_percent: 8 },
+            { name: 'Соус (веган)', weight_ml: 30, unit: 'ml', price_per_unit_vnd: 2, waste_percent: 0 },
+            { name: 'Упаковка (бумага, коробка)', weight_g: 20, unit: 'box', price_per_unit_vnd: 3000, waste_percent: 0 }
+        ]
+    },
+    {
+        id: 'fries',
+        name: 'Картофель фри (порция)',
+        price_vnd: 75000,
+        portion_weight_g: 200,
+        ingredients: [
+            { name: 'Картофель свежий', weight_g: 250, unit: 'g', price_per_unit_vnd: 12, waste_percent: 20 },
+            { name: 'Масло растительное', weight_ml: 50, unit: 'ml', price_per_unit_vnd: 30, waste_percent: 0 },
+            { name: 'Соль, специи', weight_g: 2, unit: 'g', price_per_unit_vnd: 10, waste_percent: 0 },
+            { name: 'Бумажный пакет', weight_g: 5, unit: 'box', price_per_unit_vnd: 1500, waste_percent: 0 }
+        ]
+    }
+];
+
+const inventoryDefault = {
+    'Булка бургерная': { current: 120, min: 80, max: 200, unit: 'шт' },
+    'Фарш мяса (говядина)': { current: 8.2, min: 5, max: 15, unit: 'кг' },
+    'Огурец свежий': { current: 3.1, min: 2, max: 6, unit: 'кг' },
+    'Помидор свежий': { current: 2.8, min: 2, max: 5, unit: 'кг' },
+    'Листья салата': { current: 1.5, min: 1, max: 3, unit: 'кг' },
+    'Грибы (шампиньоны, обжаренные)': { current: 2.0, min: 1, max: 4, unit: 'кг' },
+    'Авокадо': { current: 1.2, min: 0.5, max: 3, unit: 'кг' },
+    'Картофель свежий': { current: 10, min: 5, max: 20, unit: 'кг' },
+    'Масло растительное': { current: 5, min: 2, max: 10, unit: 'л' },
+    'Соль, специи': { current: 1, min: 0.5, max: 2, unit: 'кг' },
+    'Соус (майонез+кетчуп)': { current: 3, min: 1, max: 5, unit: 'л' },
+    'Соус (веган)': { current: 1.5, min: 0.5, max: 3, unit: 'л' },
+    'Упаковка (бумага, коробка)': { current: 280, min: 200, max: 500, unit: 'шт' },
+    'Упаковка (большая коробка)': { current: 150, min: 100, max: 300, unit: 'шт' },
+    'Бумажный пакет': { current: 200, min: 100, max: 400, unit: 'шт' },
+    'Бумажные салфетки': { current: 2.0, min: 1.5, max: 5, unit: 'уп' },
+    'Средство для уборки': { current: 1.5, min: 1, max: 3, unit: 'л' }
+};
+
+let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY_INVENTORY)) || { ...inventoryDefault };
+let currentShift = JSON.parse(localStorage.getItem(STORAGE_KEY_SHIFT)) || null;
+let weeklySales = {};
+
+// Загружаем продажи за неделю
+function loadWeeklySales() {
+    const weekKey = getWeekKey();
+    weeklySales = JSON.parse(localStorage.getItem(STORAGE_KEY_WEEK + weekKey)) || {};
+}
+
+function saveWeeklySales() {
+    const weekKey = getWeekKey();
+    localStorage.setItem(STORAGE_KEY_WEEK + weekKey, JSON.stringify(weeklySales));
+}
+
+function getWeekKey() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const diff = now - start;
+    const week = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
+    return now.getFullYear() + '-W' + week;
+}
+
+// ============ UI FUNCTIONS ============
+function showTab(index) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section')[index].classList.add('active');
+    document.querySelectorAll('.tab')[index].classList.add('active');
+}
+
+function setCurrency(curr) {
+    currentCurrency = curr;
+    document.querySelectorAll('.currency-toggle button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    updateDashboard();
+}
+
+function formatCurrency(amount) {
+    if (currentCurrency === 'vnd') {
+        return Math.round(amount).toLocaleString('vi-VN') + ' ₫';
+    } else {
+        return Math.round(amount * exchangeRate).toLocaleString('ru-RU') + ' ₽';
+    }
+}
+
+function formatAmount(amount) {
+    return Math.round(amount).toLocaleString('vi-VN');
+}
+
+// ============ SHIFT MANAGEMENT ============
+function toggleShift() {
+    if (!currentShift) {
+        startShift();
+    } else {
+        prepareEndShift();
+    }
+}
+
+function startShift() {
+    currentShift = {
+        id: Date.now(),
+        start_time: new Date().toISOString(),
+        sales: {},
+        ended: false
+    };
+    localStorage.setItem(STORAGE_KEY_SHIFT, JSON.stringify(currentShift));
+    updateShiftUI();
+}
+
+function prepareEndShift() {
+    calculateShiftConsumption();
+}
+
+function endShift() {
+    if (!currentShift) return;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Записываем продажи в неделю
+    if (!weeklySales[today]) weeklySales[today] = [];
+    Object.entries(currentShift.sales).forEach(([recipeId, qty]) => {
+        weeklySales[today].push({ recipe_id: recipeId, quantity: qty });
+    });
+
+    // Вычисляем расходы и вычитаем из товаров
+    const consumption = calculateConsumption(currentShift.sales);
+    Object.entries(consumption).forEach(([item, amount]) => {
+        if (inventory[item]) {
+            inventory[item].current = Math.max(0, inventory[item].current - amount);
+        }
+    });
+
+    // Сохраняем всё
+    saveWeeklySales();
+    localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+    localStorage.setItem(STORAGE_KEY_SHIFT, null);
+
+    currentShift = null;
+    showShiftSummary();
+    updateDashboard();
+    updateInventoryTab();
+}
+
+function startNewShift() {
+    currentShift = null;
+    localStorage.setItem(STORAGE_KEY_SHIFT, null);
+    updateShiftUI();
+}
+
+function saveShiftSales() {
+    if (!currentShift) return;
+
+    const sales = {};
+    techCards.forEach(recipe => {
+        const qty = parseInt(document.getElementById(`shift-qty-${recipe.id}`).value) || 0;
+        if (qty > 0) sales[recipe.id] = qty;
+    });
+
+    if (Object.keys(sales).length === 0) { alert('Введи хотя бы одно продажу'); return; }
+
+    currentShift.sales = sales;
+    localStorage.setItem(STORAGE_KEY_SHIFT, JSON.stringify(currentShift));
+
+    calculateShiftConsumption();
+    alert('✅ Продажи сохранены. Проверь расходы.');
+}
+
+function calculateConsumption(sales) {
+    const consumption = {};
+
+    Object.entries(sales).forEach(([recipeId, qty]) => {
+        const recipe = techCards.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        recipe.ingredients.forEach(ing => {
+            if (!consumption[ing.name]) consumption[ing.name] = 0;
+            const weight = ing.weight_g || ing.weight_ml || 0;
+            const waste = (ing.waste_percent || 0) / 100;
+            consumption[ing.name] += weight * (1 + waste) * qty / 1000;
+        });
+    });
+
+    return consumption;
+}
+
+function calculateShiftConsumption() {
+    const consumption = calculateConsumption(currentShift.sales);
+
+    const tbody = document.getElementById('consumption-body');
+    let totalCost = 0;
+    tbody.innerHTML = Object.entries(consumption).map(([item, amountKg]) => {
+        const ing = getAllIngredients().find(i => i.name === item);
+        if (!ing) return '';
+        const cost = amountKg * 1000 * (ing.price_per_unit_vnd / 1000);
+        totalCost += cost;
+        const current = inventory[item]?.current || 0;
+        const unit = inventory[item]?.unit || '';
+        return `<tr>
+            <td>${item}</td>
+            <td style="text-align:right;">${(amountKg).toFixed(2)} кг</td>
+            <td style="text-align:right;">${current} ${unit}</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('shift-cost-display').textContent = formatCurrency(totalCost);
+
+    // Маржа за смену
+    let revenue = 0;
+    Object.entries(currentShift.sales).forEach(([recipeId, qty]) => {
+        const recipe = techCards.find(r => r.id === recipeId);
+        revenue += recipe.price_vnd * qty;
+    });
+    const margin = revenue - totalCost;
+    const marginPct = revenue > 0 ? ((margin / revenue) * 100).toFixed(1) : 0;
+    document.getElementById('shift-margin-display').textContent = `маржа: ${marginPct}% (${formatCurrency(margin)})`;
+}
+
+function showShiftSummary() {
+    document.getElementById('shift-active-section').style.display = 'none';
+    document.getElementById('shift-summary-card').style.display = 'block';
+
+    const today = new Date().toISOString().split('T')[0];
+    const tbody = document.getElementById('shift-summary-table');
+
+    let html = `<tr><td colspan="2" style="font-weight:600;border-bottom:2px solid var(--border);">✅ Смена завершена ${new Date().toLocaleTimeString('ru-RU')}</td></tr>`;
+
+    if (weeklySales[today]) {
+        weeklySales[today].forEach(sale => {
+            const recipe = techCards.find(r => r.id === sale.recipe_id);
+            html += `<tr><td>${recipe.name}</td><td style="text-align:right;">${sale.quantity} шт</td></tr>`;
+        });
+    }
+
+    html += `<tr style="border-top:2px solid var(--border);"><td>💾 Товары вычтены</td><td style="text-align:right;">✓</td></tr>`;
+
+    tbody.innerHTML = html;
+}
+
+function updateShiftUI() {
+    const statusCard = document.getElementById('shift-status-card');
+    const activeSection = document.getElementById('shift-active-section');
+    const summaryCard = document.getElementById('shift-summary-card');
+
+    if (!currentShift || currentShift.ended) {
+        statusCard.style.display = 'block';
+        activeSection.style.display = 'none';
+        summaryCard.style.display = 'none';
+        document.getElementById('shift-title').textContent = '❌ Смена не начата';
+        document.getElementById('shift-toggle-btn').textContent = '▶ Начать смену';
+        document.getElementById('shift-toggle-btn').style.background = 'var(--success)';
+    } else {
+        statusCard.style.display = 'none';
+        activeSection.style.display = 'block';
+        summaryCard.style.display = 'none';
+
+        const startTime = new Date(currentShift.start_time).toLocaleTimeString('ru-RU');
+        document.getElementById('shift-time').textContent = `⏱ Начало: ${startTime}`;
+
+        const list = document.getElementById('shift-recipes-list');
+        list.innerHTML = techCards.map(recipe => `
+            <div class="recipe-input">
+                <div class="recipe-input-header">
+                    <div class="recipe-input-title">${recipe.name}</div>
+                    <div class="recipe-input-price">${formatAmount(recipe.price_vnd)} ₫</div>
+                </div>
+                <input type="number" id="shift-qty-${recipe.id}" placeholder="Кол-во" min="0" value="${currentShift.sales[recipe.id] || 0}" onchange="calculateShiftConsumption()">
+            </div>
+        `).join('');
+    }
+}
+
+// ============ DASHBOARD ============
+function updateDashboard() {
+    loadWeeklySales();
+
+    let totalRevenue = 0, totalCost = 0, totalWaste = 0;
+    let recipeSales = {};
+
+    Object.entries(weeklySales).forEach(([date, dailySales]) => {
+        if (!Array.isArray(dailySales)) return;
+
+        dailySales.forEach(sale => {
+            const recipe = techCards.find(r => r.id === sale.recipe_id);
+            if (!recipe) return;
+
+            const costInfo = calculateRecipeCost(recipe);
+            const revenue = recipe.price_vnd * sale.quantity;
+            const costTotal = costInfo.real_cost * sale.quantity;
+            const wasteTotal = costInfo.waste_cost * sale.quantity;
+
+            totalRevenue += revenue;
+            totalCost += costTotal;
+            totalWaste += wasteTotal;
+
+            if (!recipeSales[sale.recipe_id]) {
+                recipeSales[sale.recipe_id] = { name: recipe.name, qty: 0, revenue: 0, cost: 0 };
+            }
+            recipeSales[sale.recipe_id].qty += sale.quantity;
+            recipeSales[sale.recipe_id].revenue += revenue;
+            recipeSales[sale.recipe_id].cost += costTotal;
+        });
+    });
+
+    const margin = totalRevenue - totalCost;
+    const marginPct = totalRevenue > 0 ? ((margin / totalRevenue) * 100).toFixed(1) : 0;
+
+    document.getElementById('revenue-display').textContent = formatCurrency(totalRevenue);
+    document.getElementById('margin-percent-display').textContent = marginPct + '%';
+    document.getElementById('margin-display').textContent = formatCurrency(margin);
+
+    const tbody = document.getElementById('dashboard-sales');
+    if (Object.keys(recipeSales).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary);">Нет данных за неделю</td></tr>';
+    } else {
+        tbody.innerHTML = Object.entries(recipeSales).map(([id, data]) => {
+            const recipeMargPct = data.revenue > 0 ? (((data.revenue - data.cost) / data.revenue) * 100).toFixed(1) : 0;
+            const statusBadge = recipeMargPct >= 40 ? 'success' : (recipeMargPct >= 30 ? 'warning' : 'danger');
+            return `<tr>
+                <td>${data.name}</td>
+                <td style="text-align:center;">${data.qty}</td>
+                <td style="text-align:right;"><span class="badge ${statusBadge}">${recipeMargPct}%</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    updateFinances(totalRevenue, totalCost, totalWaste);
+    updateAlerts();
+}
+
+function getAllIngredients() {
+    const ingredients = {};
+    techCards.forEach(recipe => {
+        recipe.ingredients.forEach(ing => {
+            if (!ingredients[ing.name]) {
+                ingredients[ing.name] = ing;
+            }
+        });
+    });
+    return Object.values(ingredients);
+}
+
+function calculateRecipeCost(recipe) {
+    let ingredientCost = 0;
+    let wasteAmount = 0;
+
+    recipe.ingredients.forEach(ing => {
+        const weight = ing.weight_g || ing.weight_ml || 0;
+        const cost = weight * (ing.price_per_unit_vnd / 1000);
+        ingredientCost += cost;
+
+        const waste = (ing.waste_percent || 0) / 100;
+        wasteAmount += cost * waste;
+    });
+
+    const realCost = ingredientCost + wasteAmount;
+    const margin = recipe.price_vnd - realCost;
+    const marginPercent = recipe.price_vnd > 0 ? (margin / recipe.price_vnd) * 100 : 0;
+
+    return {
+        ingredient_cost: ingredientCost,
+        waste_cost: wasteAmount,
+        real_cost: realCost,
+        margin: margin,
+        margin_percent: marginPercent
+    };
+}
+
+// ============ FINANCES ============
+function updateFinances(revenue, cost, waste) {
+    const rawCost = cost * 0.7;
+    const packagingCost = cost * 0.2;
+    const otherCost = cost * 0.1;
+
+    document.getElementById('fin-revenue').textContent = formatCurrency(revenue);
+    document.getElementById('fin-raw').textContent = formatCurrency(rawCost);
+    document.getElementById('fin-packaging').textContent = formatCurrency(packagingCost);
+    document.getElementById('fin-waste').textContent = formatCurrency(waste);
+    document.getElementById('fin-cost').textContent = formatCurrency(cost);
+    document.getElementById('fin-margin').textContent = formatCurrency(revenue - cost);
+}
+
+// ============ INVENTORY ============
+function updateInventoryTab() {
+    const table = document.getElementById('inventory-table');
+    const select = document.getElementById('inventory-select');
+
+    select.innerHTML = '<option value="">-- Выбери товар --</option>';
+
+    table.innerHTML = Object.entries(inventory).map(([name, data]) => {
+        const status = data.current < data.min ? 'danger' : (data.current < data.min * 1.5 ? 'warning' : 'success');
+        const statusIcon = data.current < data.min ? '⚠️' : '✅';
+
+        select.innerHTML += `<option value="${name}">${name}</option>`;
+
+        return `<tr>
+            <td>${name}</td>
+            <td style="text-align:center;">${data.current} ${data.unit}</td>
+            <td style="text-align:center;">${data.min}-${data.max} ${data.unit}</td>
+            <td style="text-align:center;"><span class="badge ${status}">${statusIcon}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function filterInventory() {
+    const query = document.getElementById('inventory-search').value.toLowerCase();
+    document.querySelectorAll('#inventory-table tr').forEach(row => {
+        const matches = row.textContent.toLowerCase().includes(query);
+        row.style.display = matches ? '' : 'none';
+    });
+}
+
+function showInventoryInput() {
+    const item = document.getElementById('inventory-select').value;
+    const container = document.getElementById('inventory-input-container');
+    if (item) {
+        document.getElementById('inventory-new-qty').value = inventory[item]?.current || 0;
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+function updateInventoryItem() {
+    const item = document.getElementById('inventory-select').value;
+    const newQty = parseFloat(document.getElementById('inventory-new-qty').value);
+
+    if (!item || isNaN(newQty) || newQty < 0) {
+        alert('❌ Проверь данные');
+        return;
+    }
+
+    inventory[item].current = newQty;
+    localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(inventory));
+    updateInventoryTab();
+    alert('✅ Товар обновлён');
+}
+
+// ============ WEEKLY PURCHASES ============
+function generateWeeklyPurchase() {
+    loadWeeklySales();
+
+    const dailyAvg = calculateDailyAverage();
+
+    if (dailyAvg === 0) {
+        alert('❌ Нет данных о продажах. Сначала проведи несколько смен.');
+        return;
+    }
+
+    const dayMultipliers = [1, 1, 0.85, 0.85, 1.1, 1.3, 1.3];
+    let totalForecast = 0;
+    dayMultipliers.forEach(m => totalForecast += dailyAvg * m);
+
+    document.getElementById('purchase-summary').style.display = 'block';
+    document.getElementById('stats-avg-daily').textContent = Math.round(dailyAvg);
+    document.getElementById('stats-forecast').textContent = Math.round(totalForecast);
+
+    const recipeRatio = {
+        'burger_classic': 0.45,
+        'burger_double': 0.20,
+        'burger_vegan': 0.18,
+        'fries': 0.17
+    };
+
+    const weeklyDemand = {};
+    let totalPurchaseCost = 0;
+
+    dayMultipliers.forEach((multiplier, dayIndex) => {
+        const daySales = Math.round(dailyAvg * multiplier);
+
+        Object.entries(recipeRatio).forEach(([recipeId, ratio]) => {
+            const recipe = techCards.find(r => r.id === recipeId);
+            if (!recipe) return;
+
+            const salesToday = Math.round(daySales * ratio);
+
+            recipe.ingredients.forEach(ing => {
+                const weight = ing.weight_g || ing.weight_ml || 0;
+                const waste = (ing.waste_percent || 0) / 100;
+                const totalNeeded = weight * salesToday * (1 + waste);
+
+                if (!weeklyDemand[ing.name]) {
+                    weeklyDemand[ing.name] = {
+                        total_g: 0,
+                        unit: ing.unit,
+                        price_per_unit: ing.price_per_unit_vnd
+                    };
+                }
+                weeklyDemand[ing.name].total_g += totalNeeded;
+            });
+        });
+    });
+
+    const tbody = document.getElementById('purchase-body');
+    tbody.innerHTML = Object.entries(weeklyDemand).map(([name, data]) => {
+        const current = inventory[name]?.current || 0;
+        let quantityNeeded;
+        let unit;
+
+        if (data.unit === 'g') {
+            quantityNeeded = Math.ceil(data.total_g / 1000);
+            unit = 'кг';
+        } else if (data.unit === 'ml') {
+            quantityNeeded = Math.ceil(data.total_g / 1000);
+            unit = 'л';
+        } else {
+            quantityNeeded = Math.ceil(data.total_g);
+            unit = data.unit;
+        }
+
+        const toOrder = Math.max(0, quantityNeeded - current);
+        const cost = toOrder * data.price_per_unit;
+        totalPurchaseCost += cost;
+
+        return `<tr>
+            <td>${name}</td>
+            <td style="text-align:right;">${quantityNeeded} ${unit}</td>
+            <td style="text-align:right;">${current} ${unit}</td>
+            <td style="text-align:right;font-weight:600;">${toOrder} ${unit}</td>
+            <td style="text-align:right;">${formatCurrency(cost)}</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('purchase-total').textContent = formatCurrency(totalPurchaseCost);
+    document.getElementById('stats-budget').textContent = formatCurrency(totalPurchaseCost);
+    document.getElementById('purchase-list-card').style.display = 'block';
+}
+
+function calculateDailyAverage() {
+    let totalSales = 0;
+    let dayCount = 0;
+
+    Object.entries(weeklySales).forEach(([date, sales]) => {
+        if (!Array.isArray(sales)) return;
+        let daySalesQty = 0;
+        sales.forEach(sale => daySalesQty += sale.quantity);
+        totalSales += daySalesQty;
+        dayCount++;
+    });
+
+    return dayCount > 0 ? totalSales / dayCount : 0;
+}
+
+// ============ ALERTS ============
+function updateAlerts() {
+    const wasteAlerts = document.getElementById('waste-alerts');
+    let html = '';
+
+    Object.entries(inventory).forEach(([name, data]) => {
+        if (data.current < data.min) {
+            html += `<div class="alert warning">📦 <strong>${name}</strong>: осталось ${data.current} ${data.unit} (мин. ${data.min})</div>`;
+        }
+    });
+
+    if (html === '') {
+        html = `<div class="alert success">✅ Все хорошо. Товаров достаточно.</div>`;
+    }
+
+    wasteAlerts.innerHTML = html;
+}
+
+// ============ EXPORT ============
+function exportDashboard() {
+    const element = document.querySelector('.section.active');
+    const opt = {
+        margin: 10,
+        filename: 'dashboard_' + new Date().toISOString().split('T')[0] + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+function exportShift() {
+    const element = document.getElementById('shift-summary-card');
+    const opt = {
+        margin: 10,
+        filename: 'shift_' + new Date().toISOString().split('T')[0] + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+function exportPurchaseList() {
+    const element = document.getElementById('purchase-list-card');
+    const opt = {
+        margin: 10,
+        filename: 'purchases_' + new Date().toISOString().split('T')[0] + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+function clearAllData() {
+    if (confirm('⚠️ Это удалит ВСЕ данные! Уверен?')) {
+        const weekKey = getWeekKey();
+        localStorage.removeItem(STORAGE_KEY_WEEK + weekKey);
+        localStorage.removeItem(STORAGE_KEY_INVENTORY);
+        localStorage.removeItem(STORAGE_KEY_SHIFT);
+        inventory = { ...inventoryDefault };
+        weeklySales = {};
+        currentShift = null;
+        alert('✅ Данные очищены');
+        location.reload();
+    }
+}
+
+// ============ INIT ============
+function init() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const diff = now - start;
+    const week = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
+    document.getElementById('week-number').textContent = week;
+
+    loadWeeklySales();
+    updateShiftUI();
+    updateInventoryTab();
+    updateDashboard();
+}
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
