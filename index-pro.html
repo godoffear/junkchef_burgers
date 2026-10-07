@@ -3,37 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#ff6b35">
+    <meta name="theme-color" content="#d9622b">
     <title>🍔 Burger Shop Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         :root {
-            --primary: #ff6b35;
-            --primary-light: #ff8c61;
-            --primary-dark: #e85a27;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --info: #3498db;
-            --surface-0: #f8f9fa;
-            --surface-1: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666;
-            --text-light: #999;
-            --border: #e0e0e0;
-            --divider: #efefef;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --surface-0: #0f0f0f;
-                --surface-1: #1a1a1a;
-                --text-primary: #ffffff;
-                --text-secondary: #bbb;
-                --text-light: #888;
-                --border: #333;
-                --divider: #222;
-            }
+            --primary: #d9622b;
+            --primary-light: #e8875a;
+            --primary-dark: #b84d1f;
+            --success: #3f9b6a;
+            --warning: #d9902b;
+            --danger: #c9524a;
+            --info: #4a86b8;
+            --surface-0: #f6f1ea;
+            --surface-1: #fffdfa;
+            --text-primary: #2b2622;
+            --text-secondary: #5a5149;
+            --text-light: #7a7068;
+            --border: #e4dacd;
+            --divider: #efe7dc;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,7 +38,7 @@
 
         /* HEADER */
         .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, #e07a4a 0%, #c9602f 100%);
             color: white;
             padding: 16px;
             padding-top: calc(16px + env(safe-area-inset-top, 0));
@@ -76,7 +64,7 @@
             font-size: 11px;
             font-weight: 600;
         }
-        .header-status.active { background: #2ecc71; }
+        .header-status.active { background: #3f9b6a; }
 
         .header-stats {
             display: grid;
@@ -85,14 +73,14 @@
         }
 
         .stat-item {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.2);
             padding: 10px;
             border-radius: 8px;
             backdrop-filter: blur(10px);
         }
 
-        .stat-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; }
-        .stat-value { font-size: 18px; font-weight: 700; }
+        .header .stat-label { font-size: 11px; opacity: 0.95; margin-bottom: 4px; color: #fff; }
+        .header .stat-value { font-size: 18px; font-weight: 700; color: #fff; }
 
         /* NAVIGATION TABS */
         .tabs {
@@ -109,7 +97,7 @@
             min-width: 70px;
             padding: 12px 8px;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             border: none;
             background: transparent;
@@ -122,9 +110,9 @@
 
         .tab:hover { color: var(--text-primary); }
         .tab.active {
-            color: var(--primary);
+            color: var(--primary-dark);
             border-bottom-color: var(--primary);
-            background: rgba(255,107,53,0.05);
+            background: rgba(217,98,43,0.05);
         }
 
         /* CONTENT */
@@ -179,20 +167,20 @@
         }
 
         .stat-box {
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: #fbf7f1;
             padding: 12px;
             border-radius: 8px;
             border: 1px solid var(--border);
             text-align: center;
         }
 
-        .stat-box.success { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f6 100%); }
-        .stat-box.warning { background: linear-gradient(135deg, #fff8e1 0%, #fff9f5 100%); }
-        .stat-box.danger { background: linear-gradient(135deg, #ffebee 0%, #ffe5e9 100%); }
+        .stat-box.success { background: #e6f3ea; }
+        .stat-box.warning { background: #fbf0dc; }
+        .stat-box.danger { background: #f8e5e3; }
 
-        .stat-label { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
-        .stat-value { font-size: 22px; font-weight: 700; color: var(--primary); }
-        .stat-subtext { font-size: 10px; color: var(--text-secondary); margin-top: 4px; }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+        .stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        .stat-subtext { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 
         /* RECIPE CARDS */
         .recipe-card {
@@ -249,7 +237,7 @@
         }
 
         .recipe-badge {
-            background: #f0f0f0;
+            background: #efe7dc; color: var(--text-secondary);
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 10px;
@@ -258,14 +246,14 @@
             flex: 1;
         }
 
-        .recipe-badge.time { background: #e3f2fd; color: #1976d2; }
-        .recipe-badge.cal { background: #fce4ec; color: #c2185b; }
+        .recipe-badge.time { background: #e1edf6; color: #2f5f8a; }
+        .recipe-badge.cal { background: #f6e3e8; color: #9b3552; }
 
         /* TABLES */
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 13px;
             margin-top: 8px;
         }
 
@@ -288,7 +276,7 @@
 
         /* BUTTONS */
         button {
-            background: var(--primary);
+            background: var(--primary-dark);
             color: white;
             border: none;
             padding: 10px 14px;
@@ -301,14 +289,14 @@
             margin: 6px 0;
         }
 
-        button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        button:hover { background: #a34419; transform: translateY(-1px); }
         button:active { transform: translateY(0); }
         button.secondary {
             background: transparent;
-            color: var(--primary);
+            color: var(--primary-dark);
             border: 1.5px solid var(--primary);
         }
-        button.secondary:hover { background: rgba(255,107,53,0.1); }
+        button.secondary:hover { background: rgba(217,98,43,0.1); }
         button.small {
             width: auto;
             padding: 6px 10px;
@@ -328,7 +316,7 @@
             color: var(--text-primary);
             font-family: inherit;
         }
-        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(217,98,43,0.1); }
 
         /* GRID */
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -338,13 +326,14 @@
             display: inline-block;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 11px;
+            background: #efe7dc; color: var(--text-secondary);
             font-weight: 600;
         }
 
-        .badge.success { background: #e8f5e9; color: #2e7d32; }
-        .badge.warning { background: #fff3e0; color: #e65100; }
-        .badge.danger { background: #ffebee; color: #c62828; }
+        .badge.success { background: #e1f1e8; color: #2a6e48; }
+        .badge.warning { background: #fbefd9; color: #8a5a10; }
+        .badge.danger { background: #f8e5e3; color: #8f3029; }
 
         .alert {
             padding: 10px;
@@ -354,9 +343,9 @@
             border-left: 4px solid;
         }
 
-        .alert.success { background: #e8f5e9; border-left-color: var(--success); color: #2e7d32; }
-        .alert.warning { background: #fff3e0; border-left-color: var(--warning); color: #e65100; }
-        .alert.danger { background: #ffebee; border-left-color: var(--danger); color: #c62828; }
+        .alert.success { background: #e6f3ea; border-left-color: var(--success); color: #245e40; }
+        .alert.warning { background: #fbf0dc; border-left-color: var(--warning); color: #7a4f0d; }
+        .alert.danger { background: #f8e5e3; border-left-color: var(--danger); color: #8f3029; }
 
         /* CHART CONTAINER */
         .chart-container {
@@ -430,6 +419,24 @@
             border-radius: 3px;
             transition: width 0.3s;
         }
+
+        /* CRM */
+        .order { background: var(--surface-0); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+        .order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+        .order-body { font-size: 13px; color: var(--text-secondary); margin: 6px 0; }
+        .order-total { font-weight: 700; color: var(--text-primary); }
+        .order-actions { display: flex; gap: 8px; }
+        .order-actions button { margin: 4px 0 0; }
+        .pick { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--surface-0); border-radius: 6px; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+        .pick small { color: var(--text-secondary); font-weight: 500; }
+        .qty { display: flex; align-items: center; gap: 8px; }
+        .qty button { width: 32px; height: 32px; padding: 0; margin: 0; font-size: 16px; }
+        .qty span { min-width: 18px; text-align: center; }
+        .empty { text-align: center; color: var(--text-light); font-size: 13px; padding: 14px 0; }
+        .st-new { background: #e1edf6; color: #2f5f8a; }
+        .st-cook { background: #fbefd9; color: #8a5a10; }
+        .st-ready { background: #e1f1e8; color: #2a6e48; }
+        .st-sold { background: #efe7dc; color: #5a5149; }
     </style>
 </head>
 <body>
@@ -459,6 +466,8 @@
         <button class="tab" onclick="showTab(2)">📋 Меню</button>
         <button class="tab" onclick="showTab(3)">💰 Финансы</button>
         <button class="tab" onclick="showTab(4)">📦 Товары</button>
+        <button class="tab" onclick="showTab(5)">🧾 Заказы</button>
+        <button class="tab" onclick="showTab(6)">💵 Продажи</button>
     </div>
 
     <!-- CONTENT -->
@@ -563,7 +572,7 @@
                         <div class="progress-bar">
                             <div class="progress-fill" id="margin-bar" style="width:96%;"></div>
                         </div>
-                        <div style="font-size:13px;font-weight:700;color:var(--primary);" id="margin-text">Маржа: 96%</div>
+                        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);" id="margin-text">Маржа: 96%</div>
                     </div>
                 </div>
 
@@ -607,15 +616,15 @@
                         </tr>
                         <tr>
                             <td>🗑️ Потери на отходы</td>
-                            <td style="text-align:right;color:var(--danger);">₫341,000</td>
+                            <td style="text-align:right;color:#a23d36;">₫341,000</td>
                         </tr>
                         <tr style="border-top:2px solid var(--border);">
                             <td><strong>💰 Чистая прибыль</strong></td>
-                            <td style="text-align:right;"><strong style="color:var(--success);">₫2,739,000</strong></td>
+                            <td style="text-align:right;"><strong style="color:#2a6e48;">₫2,739,000</strong></td>
                         </tr>
                         <tr>
                             <td><strong>📊 Маржа</strong></td>
-                            <td style="text-align:right;"><strong style="color:var(--primary);">96.2%</strong></td>
+                            <td style="text-align:right;"><strong style="color:var(--primary-dark);">96.2%</strong></td>
                         </tr>
                     </tbody>
                 </table>
@@ -707,6 +716,37 @@
 
             <div class="alert warning">
                 ⚠️ <strong>Огурец приближается к минимуму</strong> (2.2 из 2 кг). Рекомендуем закупить на неделе.
+            </div>
+        </div>
+
+        <!-- TAB 5: CRM ЗАКАЗЫ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">➕ Новый заказ</div>
+                <div id="order-pick"></div>
+                <input type="text" id="order-client" placeholder="Имя клиента / стол (необязательно)">
+                <div style="display:flex;justify-content:space-between;font-weight:700;margin:6px 0;"><span>Итого:</span><span id="order-sum">₫0</span></div>
+                <button onclick="createOrder()">Создать заказ</button>
+            </div>
+            <div class="card">
+                <div class="card-title">🧾 Активные заказы</div>
+                <div id="orders-active"></div>
+            </div>
+        </div>
+
+        <!-- TAB 6: ПРОДАЖИ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">💵 Итоги продаж</div>
+                <div class="stats-grid">
+                    <div class="stat-box success"><div class="stat-label">Продано заказов</div><div class="stat-value" id="sales-count">0</div></div>
+                    <div class="stat-box"><div class="stat-label">Выручка</div><div class="stat-value" id="sales-sum">₫0</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">✅ Проданные заказы</div>
+                <div id="orders-sold"></div>
+                <button class="secondary" onclick="clearSold()">Очистить историю</button>
             </div>
         </div>
     </div>
@@ -852,9 +892,106 @@ function startNew() {
     document.getElementById('shift-status').classList.remove('active');
 }
 
+
+// CRM
+const STATUSES = [
+    { key: 'new', label: 'Новый', cls: 'st-new', next: 'Взять в работу' },
+    { key: 'cook', label: 'Готовится', cls: 'st-cook', next: 'Готов' },
+    { key: 'ready', label: 'Готов', cls: 'st-ready', next: 'Продан ✓' },
+    { key: 'sold', label: 'Продан', cls: 'st-sold' }
+];
+let orders = [];
+let draft = {};
+try { orders = JSON.parse(localStorage.getItem('crm-orders') || '[]'); } catch (e) {}
+
+function saveOrders() { try { localStorage.setItem('crm-orders', JSON.stringify(orders)); } catch (e) {} }
+function money(n) { return '₫' + Math.round(n).toLocaleString('ru-RU'); }
+function orderSum(items) { return items.reduce((t, i) => t + i.price * i.qty, 0); }
+function orderText(o) { return o.items.map(i => `${i.name} ×${i.qty}`).join(', '); }
+
+function renderPick() {
+    document.getElementById('order-pick').innerHTML = recipes.map(r => `
+        <div class="pick">
+            <div>${r.name}<br><small>${money(r.price)}</small></div>
+            <div class="qty">
+                <button onclick="changeQty(${r.id},-1)">−</button>
+                <span>${draft[r.id] || 0}</span>
+                <button onclick="changeQty(${r.id},1)">+</button>
+            </div>
+        </div>`).join('');
+    const sum = recipes.reduce((t, r) => t + r.price * (draft[r.id] || 0), 0);
+    document.getElementById('order-sum').textContent = money(sum);
+}
+
+function changeQty(id, d) {
+    draft[id] = Math.max(0, (draft[id] || 0) + d);
+    renderPick();
+}
+
+function createOrder() {
+    const items = recipes.filter(r => draft[r.id] > 0).map(r => ({ name: r.name, price: r.price, qty: draft[r.id] }));
+    if (!items.length) { alert('Добавьте хотя бы одну позицию'); return; }
+    const num = orders.reduce((m, o) => Math.max(m, o.num), 0) + 1;
+    const client = document.getElementById('order-client').value.trim();
+    orders.push({ num, client, items, status: 'new', created: Date.now() });
+    draft = {};
+    document.getElementById('order-client').value = '';
+    saveOrders();
+    renderPick();
+    renderOrders();
+}
+
+function advance(num) {
+    const o = orders.find(x => x.num === num);
+    const i = STATUSES.findIndex(s => s.key === o.status);
+    if (i < STATUSES.length - 1) o.status = STATUSES[i + 1].key;
+    if (o.status === 'sold') o.sold = Date.now();
+    saveOrders();
+    renderOrders();
+}
+
+function cancelOrder(num) {
+    orders = orders.filter(o => o.num !== num);
+    saveOrders();
+    renderOrders();
+}
+
+function clearSold() {
+    if (!confirm('Удалить историю проданных заказов?')) return;
+    orders = orders.filter(o => o.status !== 'sold');
+    saveOrders();
+    renderOrders();
+}
+
+function renderOrders() {
+    const active = orders.filter(o => o.status !== 'sold');
+    document.getElementById('orders-active').innerHTML = active.length ? active.slice().reverse().map(o => {
+        const st = STATUSES.find(s => s.key === o.status);
+        return `<div class="order">
+            <div class="order-head"><span>№${o.num}${o.client ? ' · ' + o.client : ''}</span><span class="badge ${st.cls}">${st.label}</span></div>
+            <div class="order-body">${orderText(o)}</div>
+            <div class="order-total">${money(orderSum(o.items))}</div>
+            <div class="order-actions">
+                <button onclick="advance(${o.num})">${st.next}</button>
+                <button class="secondary" onclick="cancelOrder(${o.num})">Отмена</button>
+            </div></div>`;
+    }).join('') : '<div class="empty">Нет активных заказов</div>';
+
+    const sold = orders.filter(o => o.status === 'sold');
+    document.getElementById('sales-count').textContent = sold.length;
+    document.getElementById('sales-sum').textContent = money(sold.reduce((t, o) => t + orderSum(o.items), 0));
+    document.getElementById('orders-sold').innerHTML = sold.length ? sold.slice().reverse().map(o => `
+        <div class="order">
+            <div class="order-head"><span>№${o.num}${o.client ? ' · ' + o.client : ''}</span><span class="order-total">${money(orderSum(o.items))}</span></div>
+            <div class="order-body">${orderText(o)} — <strong>продан</strong></div>
+        </div>`).join('') : '<div class="empty">Пока ничего не продано</div>';
+}
+
 // INIT
 window.addEventListener('load', () => {
     renderMenu();
+    renderPick();
+    renderOrders();
 });
 </script>
 </body>
