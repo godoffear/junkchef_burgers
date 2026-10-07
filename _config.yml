@@ -1,0 +1,19 @@
+# GitHub Pages configuration
+title: 🍔 Burger Shop Nha Trang
+description: Мобильное приложение для управления бургер-шопом
+
+# Use the default theme
+theme: jekyll-theme-minimal
+
+# Enable https
+enforce_https: true
+
+# Exclude files
+exclude:
+  - .git
+  - .gitignore
+  - README.md
+  - GETTING-STARTED.md
+  - QUICKSTART.md
+  - DEPLOY.md
+  - feature-suggestions.md
