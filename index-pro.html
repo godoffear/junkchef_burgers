@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ff6b35">
+    <title>🍔 Burger Shop Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --primary-light: #ff8c61;
+            --primary-dark: #e85a27;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --surface-0: #f8f9fa;
+            --surface-1: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --text-light: #999;
+            --border: #e0e0e0;
+            --divider: #efefef;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface-0: #0f0f0f;
+                --surface-1: #1a1a1a;
+                --text-primary: #ffffff;
+                --text-secondary: #bbb;
+                --text-light: #888;
+                --border: #333;
+                --divider: #222;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface-0);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 16px;
+            padding-top: calc(16px + env(safe-area-inset-top, 0));
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .header-title { font-size: 20px; font-weight: 700; }
+        .header-status {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .header-status.active { background: #2ecc71; }
+
+        .header-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.15);
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; }
+        .stat-value { font-size: 18px; font-weight: 700; }
+
+        /* NAVIGATION TABS */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            background: var(--surface-1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab:hover { color: var(--text-primary); }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(255,107,53,0.05);
+        }
+
+        /* CONTENT */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* CARDS */
+        .card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* STAT BOXES */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-box.success { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f6 100%); }
+        .stat-box.warning { background: linear-gradient(135deg, #fff8e1 0%, #fff9f5 100%); }
+        .stat-box.danger { background: linear-gradient(135deg, #ffebee 0%, #ffe5e9 100%); }
+
+        .stat-label { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+        .stat-value { font-size: 22px; font-weight: 700; color: var(--primary); }
+        .stat-subtext { font-size: 10px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* RECIPE CARDS */
+        .recipe-card {
+            background: var(--surface-1);
+            border: 2px solid var(--divider);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .recipe-card:active { transform: scale(0.98); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .recipe-name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+        .recipe-price {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .recipe-content {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .recipe-ingredient {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .recipe-ingredient:last-child { border-bottom: none; }
+        .recipe-ingredient-name { font-weight: 500; color: var(--text-primary); }
+        .recipe-ingredient-amount { color: var(--text-light); font-size: 11px; }
+
+        .recipe-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid var(--divider);
+            gap: 6px;
+        }
+
+        .recipe-badge {
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+        }
+
+        .recipe-badge.time { background: #e3f2fd; color: #1976d2; }
+        .recipe-badge.cal { background: #fce4ec; color: #c2185b; }
+
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 8px;
+            background: var(--surface-0);
+            font-weight: 700;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        tr:hover { background: var(--surface-0); }
+        tr:last-child td { border-bottom: none; }
+
+        /* BUTTONS */
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 6px 0;
+        }
+
+        button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+        }
+        button.secondary:hover { background: rgba(255,107,53,0.1); }
+        button.small {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 11px;
+            margin: 0 4px 0 0;
+        }
+
+        /* INPUTS */
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+
+        /* GRID */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+        /* BADGES & ALERTS */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge.success { background: #e8f5e9; color: #2e7d32; }
+        .badge.warning { background: #fff3e0; color: #e65100; }
+        .badge.danger { background: #ffebee; color: #c62828; }
+
+        .alert {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            border-left: 4px solid;
+        }
+
+        .alert.success { background: #e8f5e9; border-left-color: var(--success); color: #2e7d32; }
+        .alert.warning { background: #fff3e0; border-left-color: var(--warning); color: #e65100; }
+        .alert.danger { background: #ffebee; border-left-color: var(--danger); color: #c62828; }
+
+        /* CHART CONTAINER */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin: 12px 0;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            animation: fadeIn 0.2s;
+        }
+
+        .modal.active { display: flex; align-items: flex-end; justify-content: center; }
+        .modal-content {
+            background: var(--surface-1);
+            width: 100%;
+            max-width: 100%;
+            padding: 16px;
+            border-radius: 16px 16px 0 0;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .modal-title { font-weight: 700; font-size: 16px; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            width: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--divider);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-top">
+            <div class="header-title">🍔 Burger Shop</div>
+            <div class="header-status" id="shift-status">Ожидание смены</div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-label">📊 Выручка неделя</div>
+                <div class="stat-value" id="header-revenue">₫2.8M</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">💰 Маржа</div>
+                <div class="stat-value" id="header-margin">96%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab active" onclick="showTab(0)">📊 Обзор</button>
+        <button class="tab" onclick="showTab(1)">🔄 Смена</button>
+        <button class="tab" onclick="showTab(2)">📋 Меню</button>
+        <button class="tab" onclick="showTab(3)">💰 Финансы</button>
+        <button class="tab" onclick="showTab(4)">📦 Товары</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- TAB 0: DASHBOARD -->
+        <div class="section active">
+            <div class="card">
+                <div class="card-title">📈 Основные показатели</div>
+                <div class="stats-grid">
+                    <div class="stat-box success">
+                        <div class="stat-label">Продаж сегодня</div>
+                        <div class="stat-value">47</div>
+                        <div class="stat-subtext">+12% от среды</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Средний чек</div>
+                        <div class="stat-value">₫159K</div>
+                        <div class="stat-subtext">За день</div>
+                    </div>
+                    <div class="stat-box warning">
+                        <div class="stat-label">Отходы</div>
+                        <div class="stat-value">12%</div>
+                        <div class="stat-subtext">От выручки</div>
+                    </div>
+                    <div class="stat-box success">
+                        <div class="stat-label">Рентабельность</div>
+                        <div class="stat-value">96%</div>
+                        <div class="stat-subtext">Средняя маржа</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🥇 Топ товаров за неделю</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Блюдо</th>
+                            <th style="text-align:right;">Шт.</th>
+                            <th style="text-align:right;">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🍔 Классический</td>
+                            <td style="text-align:right;"><strong>185</strong></td>
+                            <td style="text-align:right;"><span class="badge success">45%</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔥 Двойной</td>
+                            <td style="text-align:right;"><strong>82</strong></td>
+                            <td style="text-align:right;"><span class="badge">20%</span></td>
+                        </tr>
+                        <tr>
+                            <td>🌱 Овощной</td>
+                            <td style="text-align:right;"><strong>72</strong></td>
+                            <td style="text-align:right;"><span class="badge warning">18%</span></td>
+                        </tr>
+                        <tr>
+                            <td>🍟 Картофель</td>
+                            <td style="text-align:right;"><strong>68</strong></td>
+                            <td style="text-align:right;"><span class="badge">17%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert success">
+                ✅ <strong>Все товары в норме!</strong> Остатки соответствуют минимальным требованиям.
+            </div>
+        </div>
+
+        <!-- TAB 1: СМЕНА -->
+        <div class="section">
+            <div id="shift-control" class="card">
+                <div class="card-title">🕐 Управление сменой</div>
+                <button id="shift-btn" onclick="toggleShift()" style="background:var(--success);font-size:14px;padding:14px;margin-bottom:0;">▶ Начать смену</button>
+            </div>
+
+            <div id="shift-active" style="display:none;">
+                <div class="card">
+                    <div class="card-title">📊 Продажи этой смены</div>
+                    <div id="shift-items"></div>
+                    <button onclick="calculateShift()">🔄 Пересчитать</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">💰 Итоги смены</div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Выручка</div>
+                            <div class="stat-value" id="shift-revenue">₫0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Себестоимость</div>
+                            <div class="stat-value" id="shift-cost">₫0</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Маржа</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="margin-bar" style="width:96%;"></div>
+                        </div>
+                        <div style="font-size:13px;font-weight:700;color:var(--primary);" id="margin-text">Маржа: 96%</div>
+                    </div>
+                </div>
+
+                <button onclick="endShift()" style="background:var(--danger);font-size:14px;padding:14px;margin-bottom:0;">⏹ Завершить смену</button>
+            </div>
+
+            <div id="shift-summary" style="display:none;" class="card">
+                <div class="card-title" style="color:var(--success);">✅ Смена завершена</div>
+                <table id="summary-table"></table>
+                <button onclick="startNew()">+ Новая смена</button>
+            </div>
+        </div>
+
+        <!-- TAB 2: МЕНЮ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">📋 Меню блюд</div>
+            </div>
+            <div id="menu-list"></div>
+        </div>
+
+        <!-- TAB 3: ФИНАНСЫ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">💹 Финансовая аналитика за неделю</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Показатель</th>
+                            <th style="text-align:right;">Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>📈 Общая выручка</td>
+                            <td style="text-align:right;"><strong>₫2,847,000</strong></td>
+                        </tr>
+                        <tr>
+                            <td>📦 Себестоимость товаров</td>
+                            <td style="text-align:right;">₫108,000</td>
+                        </tr>
+                        <tr>
+                            <td>🗑️ Потери на отходы</td>
+                            <td style="text-align:right;color:var(--danger);">₫341,000</td>
+                        </tr>
+                        <tr style="border-top:2px solid var(--border);">
+                            <td><strong>💰 Чистая прибыль</strong></td>
+                            <td style="text-align:right;"><strong style="color:var(--success);">₫2,739,000</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>📊 Маржа</strong></td>
+                            <td style="text-align:right;"><strong style="color:var(--primary);">96.2%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🥇 Рентабельность по блюдам</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Блюдо</th>
+                            <th style="text-align:right;">Маржа</th>
+                            <th style="text-align:right;">Прибыль</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🍔 Классический</td>
+                            <td style="text-align:right;"><span class="badge success">97%</span></td>
+                            <td style="text-align:right;">₫160K</td>
+                        </tr>
+                        <tr>
+                            <td>🔥 Двойной</td>
+                            <td style="text-align:right;"><span class="badge success">97%</span></td>
+                            <td style="text-align:right;">₫237K</td>
+                        </tr>
+                        <tr>
+                            <td>🌱 Овощной</td>
+                            <td style="text-align:right;"><span class="badge success">96%</span></td>
+                            <td style="text-align:right;">₫129K</td>
+                        </tr>
+                        <tr>
+                            <td>🍟 Картофель</td>
+                            <td style="text-align:right;"><span class="badge success">96%</span></td>
+                            <td style="text-align:right;">₫72K</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: ТОВАРЫ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">📦 Остатки на складе</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th style="text-align:center;">Остаток</th>
+                            <th style="text-align:center;">Норма</th>
+                            <th style="text-align:center;">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table">
+                        <tr>
+                            <td>Булка</td>
+                            <td style="text-align:center;">145 шт</td>
+                            <td style="text-align:center;">80-200</td>
+                            <td style="text-align:center;"><span class="badge success">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Фарш</td>
+                            <td style="text-align:center;">6.8 кг</td>
+                            <td style="text-align:center;">5-15</td>
+                            <td style="text-align:center;"><span class="badge success">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Огурец</td>
+                            <td style="text-align:center;">2.2 кг</td>
+                            <td style="text-align:center;">2-6</td>
+                            <td style="text-align:center;"><span class="badge warning">⚠️</span></td>
+                        </tr>
+                        <tr>
+                            <td>Помидор</td>
+                            <td style="text-align:center;">3.1 кг</td>
+                            <td style="text-align:center;">2-5</td>
+                            <td style="text-align:center;"><span class="badge success">✅</span></td>
+                        </tr>
+                        <tr>
+                            <td>Картофель</td>
+                            <td style="text-align:center;">8.5 кг</td>
+                            <td style="text-align:center;">5-20</td>
+                            <td style="text-align:center;"><span class="badge success">✅</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert warning">
+                ⚠️ <strong>Огурец приближается к минимуму</strong> (2.2 из 2 кг). Рекомендуем закупить на неделе.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL БЖУ -->
+<div id="bzhu-modal" class="modal">
+    <div class="modal-content" style="max-width:100%;margin:0;">
+        <div class="modal-header">
+            <span class="modal-title" id="modal-title">БЖУ</span>
+            <button class="modal-close" onclick="closeBzhuModal()">✕</button>
+        </div>
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<script>
+// DEMO DATA
+const recipes = [
+    { id: 1, name: '🍔 Классический', price: 165000, cal: 650, bzhu: '28/32/45', time: 10, ingredients: ['Булка 75г', 'Фарш 200г', 'Огурец 20г', 'Помидор 15г', 'Салат 10г'] },
+    { id: 2, name: '🔥 Двойной', price: 245000, cal: 950, bzhu: '48/52/58', time: 15, ingredients: ['Булка 75г', 'Фарш 400г', 'Огурец 30г', 'Помидор 25г', 'Салат 15г'] },
+    { id: 3, name: '🌱 Овощной', price: 135000, cal: 580, bzhu: '18/22/62', time: 12, ingredients: ['Булка 75г', 'Грибы 120г', 'Авокадо 30г', 'Овощи 50г', 'Салат 15г'] },
+    { id: 4, name: '🍟 Картофель', price: 75000, cal: 380, bzhu: '5/18/48', time: 5, ingredients: ['Картофель 250г', 'Масло 50мл', 'Специи 2г'] }
+];
+
+let currentShift = null;
+let shiftSales = {};
+
+// UI
+function showTab(i) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section')[i].classList.add('active');
+    document.querySelectorAll('.tab')[i].classList.add('active');
+}
+
+function openBzhuModal(recipe) {
+    const [p, j, u] = recipe.bzhu.split('/');
+    document.getElementById('modal-title').textContent = recipe.name;
+    document.getElementById('modal-body').innerHTML = `
+        <div style="padding:16px;text-align:center;">
+            <div style="font-size:32px;margin-bottom:16px;">${recipe.cal} ккал</div>
+            <table style="width:100%;font-size:14px;margin-bottom:16px;">
+                <tr><td style="padding:8px;">Белки:</td><td style="text-align:right;font-weight:700;">${p}г</td></tr>
+                <tr><td style="padding:8px;">Жиры:</td><td style="text-align:right;font-weight:700;">${j}г</td></tr>
+                <tr><td style="padding:8px;">Углеводы:</td><td style="text-align:right;font-weight:700;">${u}г</td></tr>
+            </table>
+            <button class="secondary" onclick="closeBzhuModal()" style="margin:0;">Закрыть</button>
+        </div>
+    `;
+    document.getElementById('bzhu-modal').classList.add('active');
+}
+
+function closeBzhuModal() {
+    document.getElementById('bzhu-modal').classList.remove('active');
+}
+
+// МЕНЮ
+function renderMenu() {
+    const html = recipes.map(r => `
+        <div class="recipe-card">
+            <div class="recipe-header">
+                <div class="recipe-name">${r.name}</div>
+                <div class="recipe-price">${(r.price/1000).toFixed(0)}K₫</div>
+            </div>
+            <div class="recipe-content">
+                ${r.ingredients.map(i => `<div class="recipe-ingredient"><span class="recipe-ingredient-name">• ${i}</span></div>`).join('')}
+            </div>
+            <div class="recipe-footer">
+                <div class="recipe-badge time">⏱️ ${r.time}м</div>
+                <div class="recipe-badge cal" onclick="openBzhuModal({...event.currentTarget.parentElement.parentElement, bzhu:'${r.bzhu}'})">🔥 ${r.cal}кал</div>
+                <div class="recipe-badge cal" onclick="openBzhuModal({...event.currentTarget.parentElement.parentElement, bzhu:'${r.bzhu}'})">БЖУ</div>
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('menu-list').innerHTML = html;
+}
+
+// СМЕНА
+function toggleShift() {
+    if (!currentShift) {
+        currentShift = true;
+        shiftSales = { 1: 0, 2: 0, 3: 0, 4: 0 };
+        document.getElementById('shift-control').style.display = 'none';
+        document.getElementById('shift-active').style.display = 'block';
+        document.getElementById('shift-summary').style.display = 'none';
+        document.getElementById('shift-status').textContent = 'Смена активна';
+        document.getElementById('shift-status').classList.add('active');
+        renderShiftItems();
+    }
+}
+
+function renderShiftItems() {
+    const html = recipes.map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface-0);border-radius:6px;margin-bottom:8px;">
+            <div style="font-weight:600;font-size:13px;">${r.name}</div>
+            <input type="number" id="qty-${r.id}" value="${shiftSales[r.id]}" onchange="shiftSales[${r.id}]=parseInt(this.value);calculateShift();" style="width:60px;padding:6px;font-size:12px;font-weight:600;text-align:center;">
+        </div>
+    `).join('');
+    document.getElementById('shift-items').innerHTML = html;
+    calculateShift();
+}
+
+function calculateShift() {
+    let revenue = 0, cost = 0;
+    Object.entries(shiftSales).forEach(([id, qty]) => {
+        const recipe = recipes.find(r => r.id == id);
+        revenue += recipe.price * qty;
+        cost += (recipe.price * 0.04) * qty; // 4% себестоимость
+    });
+
+    document.getElementById('shift-revenue').textContent = '₫' + (revenue/1000).toFixed(0) + 'K';
+    document.getElementById('shift-cost').textContent = '₫' + (cost/1000).toFixed(0) + 'K';
+
+    const margin = revenue > 0 ? ((revenue - cost) / revenue * 100) : 0;
+    document.getElementById('margin-bar').style.width = Math.min(margin, 100) + '%';
+    document.getElementById('margin-text').textContent = `Маржа: ${margin.toFixed(1)}%`;
+}
+
+function endShift() {
+    document.getElementById('shift-active').style.display = 'none';
+    document.getElementById('shift-summary').style.display = 'block';
+
+    let html = '<tr><td style="font-weight:700;padding:10px;border-bottom:2px solid var(--border);">Продажи смены</td><td style="text-align:right;font-weight:700;padding:10px;border-bottom:2px solid var(--border);">Кол-во</td></tr>';
+    Object.entries(shiftSales).forEach(([id, qty]) => {
+        if (qty > 0) {
+            const r = recipes.find(x => x.id == id);
+            html += `<tr><td style="padding:8px;">${r.name}</td><td style="text-align:right;padding:8px;"><strong>${qty} шт</strong></td></tr>`;
+        }
+    });
+
+    document.getElementById('summary-table').innerHTML = html;
+    currentShift = null;
+    document.getElementById('shift-status').textContent = 'Смена завершена';
+    document.getElementById('shift-status').classList.remove('active');
+}
+
+function startNew() {
+    document.getElementById('shift-control').style.display = 'block';
+    document.getElementById('shift-active').style.display = 'none';
+    document.getElementById('shift-summary').style.display = 'none';
+    document.getElementById('shift-status').textContent = 'Ожидание смены';
+    document.getElementById('shift-status').classList.remove('active');
+}
+
+// INIT
+window.addEventListener('load', () => {
+    renderMenu();
+});
+</script>
+</body>
+</html>
