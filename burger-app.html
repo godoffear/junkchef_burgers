@@ -169,6 +169,20 @@ input:focus { outline: none; border-color: var(--primary); }
 .pact { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .pact .btn { flex: 1 1 auto; }
 .pact input[type=date] { width: auto; flex: 0 1 150px; min-height: 36px; padding: 4px 8px; font-size: 14px; }
+.ing { border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 10px; background: var(--bg); }
+.ing-top { display: grid; grid-template-columns: 1fr 44px; gap: 8px; margin-bottom: 8px; }
+.ing-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); margin-top: 8px; }
+.ing label small, .tcmeta label small { display: block; color: var(--text-2); font-size: 12px; margin-bottom: 2px; }
+select, textarea { width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); }
+textarea { min-height: 80px; resize: vertical; }
+.tc-tot { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+.tc-tot div { background: var(--surface-2); border-radius: 10px; padding: 8px 6px; text-align: center; }
+.tc-tot b { display: block; font-size: 17px; }
+.tc-tot span { font-size: 12px; color: var(--text-2); }
+.tc-card { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.tc-card:last-child { border-bottom: none; }
+.tc-line { font-size: 14px; color: var(--text-2); margin: 4px 0 8px; }
+.tc-line b { color: var(--text); }
 /* bottom nav */
 .nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
 .nav-in { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
@@ -230,6 +244,14 @@ input:focus { outline: none; border-color: var(--primary); }
 
     <!-- МЕНЮ -->
     <section class="view" id="v-menu">
+      <div class="chips" id="mseg"><button class="chip on" data-msub="list">Блюда и цены</button><button class="chip" data-msub="tc">Технологические карты</button></div>
+      <div id="m-tc" hidden>
+        <div class="card"><h2>📖 Технологические карты</h2>
+          <p class="muted">Состав блюда, КБЖУ на порцию, себестоимость и наценка. Цены и КБЖУ в примерах ориентировочные: проверьте по упаковкам. Когда заказ продан, продукты списываются со склада по этим картам.</p>
+          <div id="tc-list"></div>
+        </div>
+      </div>
+      <div id="m-list">
       <div class="card"><h2>Меню и цены</h2>
         <p class="muted">Меняйте цену прямо в поле. Выключатель «Есть» убирает блюдо с кассы (стоп-лист).</p>
         <div id="menu-list"></div>
@@ -240,6 +262,7 @@ input:focus { outline: none; border-color: var(--primary); }
         <button class="btn block" style="margin-top:12px" data-act="add-dish">Добавить в меню</button>
       </div>
       <button class="btn ghost block" data-act="reset"><span class="danger">Сбросить все данные</span></button>
+      </div>
     </section>
 
     <!-- ЗАГОТОВКИ -->
@@ -309,12 +332,19 @@ const PREP_SEED = () => { const n = Date.now(); return [
   { id: 3, name: 'Нарезанный лук', qty: 0.8, unit: 'кг', par: 1.5, batch: 1, shelf: 1, exp: eod(n) },
   { id: 4, name: 'Маринованные огурцы', qty: 2, unit: 'кг', par: 1, batch: 2, shelf: 14, exp: eod(n + 10 * DAY) }
 ]; };
+const I = (name, qty, unit, kcal, p, f, c, price, stockId, w) => ({ name, qty, unit, kcal, p, f, c, price, stockId: stockId || null, w: w || 0 });
+const TC_SEED = {
+  1: { time: 10, steps: 'Обжарить котлету по 4 минуты с каждой стороны. Собрать: булка, салат, помидор, огурец, котлета.', ings: [I('Булка', 1, 'шт', 199, 6.8, 2.4, 36.8, 6000, 1, 75), I('Фарш говяжий', 200, 'г', 250, 17, 20, 0, 200000, 2), I('Огурец', 20, 'г', 15, .8, .1, 2.8, 25000, 3), I('Помидор', 15, 'г', 20, .9, .2, 4.2, 30000, 4), I('Салат', 10, 'г', 14, 1.4, .2, 2, 60000)] },
+  2: { time: 15, steps: 'Две котлеты по 200 г, обжарить по 4 минуты с каждой стороны. Собрать как классический.', ings: [I('Булка', 1, 'шт', 199, 6.8, 2.4, 36.8, 6000, 1, 75), I('Фарш говяжий', 400, 'г', 250, 17, 20, 0, 200000, 2), I('Огурец', 30, 'г', 15, .8, .1, 2.8, 25000, 3), I('Помидор', 25, 'г', 20, .9, .2, 4.2, 30000, 4), I('Салат', 15, 'г', 14, 1.4, .2, 2, 60000)] },
+  3: { time: 12, steps: 'Грибы обжарить 5 минут. Собрать: булка, салат, овощи, грибы, авокадо.', ings: [I('Булка', 1, 'шт', 199, 6.8, 2.4, 36.8, 6000, 1, 75), I('Грибы', 120, 'г', 27, 3.1, .3, 3.3, 90000), I('Авокадо', 30, 'г', 160, 2, 15, 9, 120000), I('Овощи', 50, 'г', 30, 1.5, .3, 6, 40000), I('Салат', 15, 'г', 14, 1.4, .2, 2, 60000)] },
+  4: { time: 5, steps: 'Картофель нарезать, обжарить во фритюре 4 минуты, посолить, добавить специи.', ings: [I('Картофель', 250, 'г', 77, 2, .1, 17, 25000, 5), I('Масло (впитывается)', 15, 'мл', 884, 0, 100, 0, 60000), I('Специи', 2, 'г', 250, 10, 5, 50, 300000)] }
+};
 const SEED = () => ({
   menu: [
-    { id: 1, em: '🍔', name: 'Классический', price: 165000, cost: 6600, on: true },
-    { id: 2, em: '🔥', name: 'Двойной', price: 245000, cost: 9800, on: true },
-    { id: 3, em: '🌱', name: 'Овощной', price: 135000, cost: 5400, on: true },
-    { id: 4, em: '🍟', name: 'Картофель', price: 75000, cost: 3000, on: true }
+    { id: 1, em: '🍔', name: 'Классический', price: 165000, cost: 6600, on: true, tc: JSON.parse(JSON.stringify(TC_SEED[1])) },
+    { id: 2, em: '🔥', name: 'Двойной', price: 245000, cost: 9800, on: true, tc: JSON.parse(JSON.stringify(TC_SEED[2])) },
+    { id: 3, em: '🌱', name: 'Овощной', price: 135000, cost: 5400, on: true, tc: JSON.parse(JSON.stringify(TC_SEED[3])) },
+    { id: 4, em: '🍟', name: 'Картофель', price: 75000, cost: 3000, on: true, tc: JSON.parse(JSON.stringify(TC_SEED[4])) }
   ],
   stock: [
     { id: 1, name: 'Булка', qty: 145, unit: 'шт', min: 80 },
@@ -330,6 +360,7 @@ const SEED = () => ({
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
 if (!S || !S.menu) S = SEED();
+S.menu.forEach(m => { if (!m.tc) m.tc = TC_SEED[m.id] && SEED().menu.find(x => x.id === m.id && x.name === m.name) ? JSON.parse(JSON.stringify(TC_SEED[m.id])) : { time: 0, steps: '', ings: [] }; });
 if (!S.preps) { S.preps = PREP_SEED(); S.seq.prep = 5; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
@@ -354,7 +385,7 @@ const startOf = p => {
   return p === 'all' ? 0 : d.getTime();
 };
 const soldIn = p => S.orders.filter(o => o.status === 'sold' && o.sold >= startOf(p));
-const cartItems = () => S.menu.filter(m => cart[m.id] > 0).map(m => ({ id: m.id, name: m.em + ' ' + m.name, price: m.price, cost: m.cost, qty: cart[m.id] }));
+const cartItems = () => S.menu.filter(m => cart[m.id] > 0).map(m => ({ id: m.id, name: m.em + ' ' + m.name, price: m.price, cost: menuCost(m), qty: cart[m.id] }));
 const prepState = p => {
   if (p.qty > 0 && p.exp) {
     if (p.exp < Date.now()) return { k: 'bad', t: 'Просрочено', rank: 0 };
@@ -366,6 +397,35 @@ const prepState = p => {
 const prepNeed = p => Math.max(0, +(p.par - p.qty).toFixed(2));
 const prepUrgent = p => prepState(p).rank <= 1 || p.qty <= 0 || p.qty < p.par * 0.5;
 const toDateVal = t => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const tcCalc = m => {
+  const r = { out: 0, k: 0, p: 0, f: 0, c: 0, cost: 0 };
+  ((m.tc && m.tc.ings) || []).forEach(i => {
+    const pc = i.unit === 'шт', x = i.qty / (pc ? 1 : 100);
+    r.k += x * (i.kcal || 0); r.p += x * (i.p || 0); r.f += x * (i.f || 0); r.c += x * (i.c || 0);
+    r.out += pc ? i.qty * (i.w || 0) : i.qty;
+    r.cost += pc ? i.qty * (i.price || 0) : i.qty / 1000 * (i.price || 0);
+  });
+  return r;
+};
+const hasTc = m => m.tc && m.tc.ings.length > 0;
+const menuCost = m => hasTc(m) ? tcCalc(m).cost : m.cost;
+const stockAmt = (g, st) => {
+  const a = g.unit, b = String(st.unit).trim().toLowerCase();
+  if (a === 'шт' && b === 'шт') return g.qty;
+  if (a === 'г' && b === 'кг') return g.qty / 1000;
+  if (a === 'мл' && b === 'л') return g.qty / 1000;
+  if (a === 'г' && b === 'г') return g.qty;
+  return 0;
+};
+function stockMove(o, dir) {
+  if (dir < 0) {
+    const log = [];
+    o.items.forEach(it => { const m = S.menu.find(x => x.id === it.id); if (!m || !m.tc) return;
+      m.tc.ings.forEach(g => { const st = S.stock.find(x => x.id === g.stockId); const a = st ? stockAmt(g, st) : 0; if (!a) return;
+        const take = Math.min(st.qty, +(a * it.qty).toFixed(3)); st.qty = +(st.qty - take).toFixed(3); log.push([st.id, take]); }); });
+    o.deducted = log;
+  } else { (o.deducted || []).forEach(([id, a]) => { const st = S.stock.find(x => x.id === id); if (st) st.qty = +(st.qty + a).toFixed(3); }); o.deducted = []; }
+}
 const lowStock = () => S.stock.filter(s => s.qty < s.min);
 
 let toastTimer;
@@ -382,7 +442,7 @@ function hideToast() { $('#toast').classList.remove('on'); }
 const buzz = () => { try { navigator.vibrate && navigator.vibrate(15); } catch (e) {} };
 
 /* ---------- render ---------- */
-function renderAll() { renderTop(); renderTiles(); renderQueue(); renderSales(); renderMenu(); renderStock(); renderPrep(); renderNav(); }
+function renderAll() { renderTop(); renderTiles(); renderQueue(); renderSales(); renderMenu(); renderStock(); renderPrep(); renderTc(); renderNav(); }
 
 function renderTop() {
   const s = soldIn('day');
@@ -461,7 +521,7 @@ function renderMenu() {
   $('#menu-list').innerHTML = S.menu.map(m => `<div class="row">
     <div><b>${esc(m.em)} ${esc(m.name)}</b>
       <div class="grid2"><div><small>Цена, ₫</small><input type="number" inputmode="numeric" value="${m.price}" data-edit="price" data-id="${m.id}" aria-label="Цена ${esc(m.name)}"></div>
-      <div><small>Себестоимость, ₫</small><input type="number" inputmode="numeric" value="${m.cost}" data-edit="cost" data-id="${m.id}" aria-label="Себестоимость ${esc(m.name)}"></div></div></div>
+      <div><small>Себестоимость, ₫</small>${hasTc(m) ? `<div style="min-height:44px;display:flex;align-items:center;font-weight:700">${money(menuCost(m))}<span class="muted">&nbsp;· из тех. карты</span></div>` : `<input type="number" inputmode="numeric" value="${m.cost}" data-edit="cost" data-id="${m.id}" aria-label="Себестоимость ${esc(m.name)}">`}</div></div></div>
     <div style="text-align:center"><label class="switch"><input type="checkbox" ${m.on ? 'checked' : ''} data-edit="on" data-id="${m.id}"> Есть</label><br><button class="btn ghost sm danger" data-act="del-dish" data-id="${m.id}" aria-label="Удалить ${esc(m.name)}">Удалить</button></div>
   </div>`).join('') || '<div class="empty">Нет блюд</div>';
 }
@@ -497,6 +557,63 @@ function renderPrep() {
   }).join('') || '<div class="empty">Заготовок нет. Добавьте первую ниже.</div>';
 }
 
+let msub = 'list', tcId = null;
+const fx = (n, d = 0) => (+n).toLocaleString('ru-RU', { maximumFractionDigits: d });
+function renderTc() {
+  $$('#mseg .chip').forEach(c => c.classList.toggle('on', c.dataset.msub === msub));
+  $('#m-list').hidden = msub !== 'list'; $('#m-tc').hidden = msub !== 'tc';
+  $('#tc-list').innerHTML = S.menu.map(m => {
+    if (!hasTc(m)) return `<div class="tc-card"><b>${esc(m.em)} ${esc(m.name)}</b><div class="tc-line">Состав не заполнен</div><button class="btn sm" data-act="tc-open" data-id="${m.id}">Заполнить карту</button></div>`;
+    const c = tcCalc(m), food = m.price ? c.cost / m.price * 100 : 0;
+    return `<div class="tc-card"><b>${esc(m.em)} ${esc(m.name)}</b>
+      <div class="tc-line">Выход <b>${fx(c.out)} г</b> · <b>${fx(c.k)} ккал</b> · Б <b>${fx(c.p, 1)}</b> Ж <b>${fx(c.f, 1)}</b> У <b>${fx(c.c, 1)}</b></div>
+      <div class="tc-line">Себестоимость <b>${money(c.cost)}</b> (${fx(food, 1)}% от цены) · наценка <b>${money(m.price - c.cost)}</b>${m.tc.time ? ` · ⏱ ${m.tc.time} мин` : ''}</div>
+      <button class="btn ghost sm" data-act="tc-open" data-id="${m.id}">Открыть карту</button></div>`;
+  }).join('') || '<div class="empty">Нет блюд</div>';
+}
+
+function tcTotalsHtml(m) {
+  const c = tcCalc(m), per100 = c.out ? 100 / c.out : 0, food = m.price ? c.cost / m.price * 100 : 0;
+  return `<div class="tc-tot"><div><b>${fx(c.k)}</b><span>ккал</span></div><div><b>${fx(c.p, 1)}</b><span>белки, г</span></div><div><b>${fx(c.f, 1)}</b><span>жиры, г</span></div><div><b>${fx(c.c, 1)}</b><span>углеводы, г</span></div></div>
+    <div class="muted">Выход порции: <b style="color:var(--text)">${fx(c.out)} г</b> · на 100 г: ${fx(c.k * per100)} ккал, Б ${fx(c.p * per100, 1)} Ж ${fx(c.f * per100, 1)} У ${fx(c.c * per100, 1)}</div>
+    <div class="muted" style="margin-top:4px">Себестоимость: <b style="color:var(--text)">${money(c.cost)}</b> · цена ${money(m.price)} · фудкост ${fx(food, 1)}% · наценка ${money(m.price - c.cost)}</div>`;
+}
+
+function openTc(id) {
+  const m = S.menu.find(x => x.id === id); if (!m) return;
+  tcId = id; const t = m.tc;
+  const opts = sel => `<option value="">— не списывать —</option>` + S.stock.map(st => `<option value="${st.id}" ${st.id === sel ? 'selected' : ''}>${esc(st.name)} (${esc(st.unit)})</option>`).join('');
+  $('#sheet').innerHTML = `
+    <div class="sheet-head"><h2 style="margin:0">${esc(m.em)} ${esc(m.name)}</h2><button class="icon-btn" data-act="close-sheet" aria-label="Закрыть">✕</button></div>
+    <div id="tc-totals">${tcTotalsHtml(m)}</div>
+    <h2 style="margin-top:14px">Состав</h2>
+    ${t.ings.map((g, i) => `<div class="ing">
+      <div class="ing-top"><input data-tc="name" data-i="${i}" value="${esc(g.name)}" placeholder="Ингредиент" aria-label="Ингредиент"><button class="icon-btn" data-act="tc-del-ing" data-i="${i}" aria-label="Удалить ингредиент">✕</button></div>
+      <div class="ing-grid">
+        <label><small>Количество</small><input type="number" inputmode="decimal" data-tc="qty" data-i="${i}" value="${g.qty}"></label>
+        <label><small>Единица</small><select data-tc="unit" data-i="${i}">${['г', 'мл', 'шт'].map(u => `<option ${u === g.unit ? 'selected' : ''}>${u}</option>`).join('')}</select></label>
+        ${g.unit === 'шт' ? `<label><small>Вес 1 шт, г</small><input type="number" inputmode="decimal" data-tc="w" data-i="${i}" value="${g.w}"></label>` : ''}
+      </div>
+      <div class="muted" style="margin-top:8px">КБЖУ на ${g.unit === 'шт' ? '1 шт' : '100 ' + g.unit}</div>
+      <div class="ing-grid" style="grid-template-columns:repeat(4,1fr)">
+        <label><small>ккал</small><input type="number" inputmode="decimal" data-tc="kcal" data-i="${i}" value="${g.kcal}"></label>
+        <label><small>Б</small><input type="number" inputmode="decimal" data-tc="p" data-i="${i}" value="${g.p}"></label>
+        <label><small>Ж</small><input type="number" inputmode="decimal" data-tc="f" data-i="${i}" value="${g.f}"></label>
+        <label><small>У</small><input type="number" inputmode="decimal" data-tc="c" data-i="${i}" value="${g.c}"></label>
+      </div>
+      <div class="ing-grid">
+        <label><small>Цена за ${g.unit === 'шт' ? '1 шт' : g.unit === 'мл' ? 'литр' : 'кг'}, ₫</small><input type="number" inputmode="numeric" data-tc="price" data-i="${i}" value="${g.price}"></label>
+        <label><small>Списывать со склада</small><select data-tc="stockId" data-i="${i}">${opts(g.stockId)}</select></label>
+      </div></div>`).join('') || '<div class="empty">Состав пуст. Добавьте первый ингредиент.</div>'}
+    <button class="btn ghost block" data-act="tc-add-ing">+ Ингредиент</button>
+    <div class="tcmeta">
+      <label class="f" for="tc-time">Время приготовления, мин</label><input id="tc-time" type="number" inputmode="numeric" data-tcmeta="time" value="${t.time || ''}">
+      <label class="f" for="tc-steps">Технология приготовления</label><textarea id="tc-steps" data-tcmeta="steps">${esc(t.steps || '')}</textarea>
+    </div>
+    <button class="btn block" style="margin-top:14px" data-act="close-sheet">Готово</button>`;
+  hideToast(); $('#sheet-bg').classList.add('on');
+}
+
 /* ---------- cart sheet ---------- */
 function openCart() {
   const items = cartItems();
@@ -516,7 +633,7 @@ function openCart() {
   hideToast();
   $('#sheet-bg').classList.add('on');
 }
-const closeSheet = () => $('#sheet-bg').classList.remove('on');
+function closeSheet() { $('#sheet-bg').classList.remove('on'); if (tcId !== null) { tcId = null; save(); renderAll(); } }
 function syncMeta() { const c = $('#c-client'), n = $('#c-note'); if (c) meta.client = c.value.trim(); if (n) meta.note = n.value.trim(); }
 
 function addToCart(id, d) {
@@ -538,9 +655,9 @@ function createOrder() {
 function advance(num) {
   const o = S.orders.find(x => x.num === num); if (!o) return;
   const prev = o.status; o.status = FLOW[FLOW.indexOf(prev) + 1];
-  if (o.status === 'sold') o.sold = Date.now();
+  if (o.status === 'sold') { o.sold = Date.now(); stockMove(o, -1); }
   save(); renderAll(); buzz();
-  toast(o.status === 'sold' ? 'Заказ №' + num + ' продан · ' + money(orderSum(o)) : 'Заказ №' + num + ': ' + STATUS[o.status].label, () => { o.status = prev; delete o.sold; save(); renderAll(); });
+  toast(o.status === 'sold' ? 'Заказ №' + num + ' продан · ' + money(orderSum(o)) : 'Заказ №' + num + ': ' + STATUS[o.status].label, () => { if (o.status === 'sold') stockMove(o, 1); o.status = prev; delete o.sold; save(); renderAll(); });
 }
 
 function cancelOrder(num) {
@@ -574,6 +691,7 @@ document.addEventListener('click', e => {
   const d = t.dataset, id = +d.id;
   if (d.view) { view = d.view; renderNav(); scrollTo(0, 0); return; }
   if (d.sub) { sub = d.sub; renderNav(); return; }
+  if (d.msub) { msub = d.msub; renderTc(); return; }
   if (d.filter) { filter = d.filter; renderQueue(); return; }
   if (d.p) { period = d.p; renderSales(); return; }
   if (d.type) { syncMeta(); meta.type = d.type; openCart(); return; }
@@ -600,6 +718,9 @@ document.addEventListener('click', e => {
       const shelf = +$('#pp-shelf').value || 1, qty = +$('#pp-qty').value || 0;
       S.preps.push({ id: S.seq.prep++, name, qty, unit: $('#pp-unit').value.trim() || 'шт', par, batch: +$('#pp-batch').value || par, shelf, exp: qty > 0 ? eod(Date.now() + shelf * DAY) : null });
       ['#pp-name', '#pp-qty', '#pp-unit', '#pp-par', '#pp-batch', '#pp-shelf'].forEach(q => $(q).value = ''); save(); renderPrep(); renderNav(); toast('Заготовка добавлена'); break; }
+    case 'tc-open': openTc(id); break;
+    case 'tc-add-ing': { const m = S.menu.find(x => x.id === tcId); m.tc.ings.push(I('', 0, 'г', 0, 0, 0, 0, 0)); openTc(tcId); $$('#sheet [data-tc=name]').pop().focus(); break; }
+    case 'tc-del-ing': { const m = S.menu.find(x => x.id === tcId); m.tc.ings.splice(+d.i, 1); save(); openTc(tcId); break; }
     case 'csv': csv(); break;
     case 'demo': demo(); break;
     case 'stock': { const s = S.stock.find(x => x.id === id); const step = s.unit === 'шт' ? 10 : 0.5; s.qty = Math.max(0, +(s.qty + step * +d.d).toFixed(2)); save(); renderStock(); renderNav(); break; }
@@ -607,7 +728,7 @@ document.addEventListener('click', e => {
     case 'add-dish': {
       const name = $('#nm-name').value.trim(), price = +$('#nm-price').value;
       if (!name || !(price > 0)) { toast('Укажите название и цену'); return; }
-      S.menu.push({ id: S.seq.menu++, em: $('#nm-em').value.trim() || '🍽', name, price, cost: Math.round(price * .04), on: true });
+      S.menu.push({ id: S.seq.menu++, em: $('#nm-em').value.trim() || '🍽', name, price, cost: Math.round(price * .04), on: true, tc: { time: 0, steps: '', ings: [] } });
       $('#nm-name').value = $('#nm-price').value = $('#nm-em').value = ''; save(); renderAll(); toast('Блюдо добавлено'); break;
     }
     case 'add-stock': {
@@ -620,6 +741,17 @@ document.addEventListener('click', e => {
   }
 });
 document.addEventListener('change', e => {
+  const tg = e.target;
+  if (tcId !== null && (tg.dataset.tc || tg.dataset.tcmeta)) {
+    const m = S.menu.find(x => x.id === tcId);
+    if (tg.dataset.tcmeta) { m.tc[tg.dataset.tcmeta] = tg.dataset.tcmeta === 'time' ? Math.max(0, +tg.value || 0) : tg.value; save(); return; }
+    const g = m.tc.ings[+tg.dataset.i], f = tg.dataset.tc;
+    if (f === 'name') g.name = tg.value.trim();
+    else if (f === 'unit') { g.unit = tg.value; save(); openTc(tcId); return; }
+    else if (f === 'stockId') g.stockId = tg.value ? +tg.value : null;
+    else g[f] = Math.max(0, +tg.value || 0);
+    save(); $('#tc-totals').innerHTML = tcTotalsHtml(m); return;
+  }
   if (e.target.dataset.prepdate) { const p = S.preps.find(x => x.id === +e.target.dataset.prepdate); p.exp = e.target.value ? eod(new Date(e.target.value + 'T12:00:00')) : null; save(); renderPrep(); renderNav(); return; }
   const t = e.target, f = t.dataset.edit; if (!f) return;
   const m = S.menu.find(x => x.id === +t.dataset.id); if (!m) return;
