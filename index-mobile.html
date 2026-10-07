@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ff6b35">
+    <title>🍔 Burger Shop Nha Trang</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --primary-dark: #e85a27;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --surface-0: #fafafa;
+            --surface-1: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border: #ecf0f1;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface-0: #1a1a1a;
+                --surface-1: #2d2d2d;
+                --text-primary: #ecf0f1;
+                --text-secondary: #bdc3c7;
+                --border: #444;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface-0);
+            color: var(--text-primary);
+            line-height: 1.4;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            padding-top: calc(12px + env(safe-area-inset-top, 0));
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+        .header p { font-size: 11px; opacity: 0.9; }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab {
+            flex: 1;
+            min-width: 60px;
+            padding: 10px 6px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: var(--text-primary); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 8px;
+        }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .card-title { font-weight: 600; margin-bottom: 6px; color: var(--text-primary); font-size: 13px; }
+        .card-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .card-detail { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+        /* ТЕХКАРТА КОМПАКТНАЯ */
+        .recipe-card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .recipe-card:active { transform: scale(0.98); }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .recipe-name { font-weight: 600; font-size: 12px; }
+        .recipe-price { color: var(--primary); font-weight: 700; font-size: 13px; }
+
+        .recipe-content { font-size: 11px; color: var(--text-secondary); line-height: 1.3; }
+        .recipe-ingredient { padding: 2px 0; }
+        .recipe-ingredient-name { font-weight: 500; color: var(--text-primary); }
+        .recipe-ingredient-amount { color: var(--text-secondary); }
+
+        .recipe-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+        .kbzhu-badge {
+            background: #f0f0f0;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        .time-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО БЖУ */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            animation: fadeIn 0.2s;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--surface-1);
+            margin: auto;
+            padding: 16px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: auto;
+            margin: 0;
+            padding: 0;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ТАБЛИЦЫ */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 6px 0; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-weight: 600; }
+        td { padding: 6px 0; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+
+        /* INPUTS */
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        label { display: block; font-weight: 500; margin-bottom: 2px; font-size: 12px; }
+
+        /* BUTTONS */
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 6px 0;
+        }
+        button:hover { background: var(--primary-dark); }
+        button:active { transform: scale(0.98); }
+        button.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        button.secondary:hover { background: rgba(255,107,53,0.1); }
+        button.small {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 11px;
+            margin: 0 4px 0 0;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
+
+        .alert {
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            border-left: 3px solid;
+        }
+        .alert.warning { background: rgba(243,156,18,0.1); border-left-color: var(--warning); }
+        .alert.success { background: rgba(46,204,113,0.1); border-left-color: var(--success); }
+        .alert.danger { background: rgba(231,76,60,0.1); border-left-color: var(--danger); }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .badge.success { background: rgba(46,204,113,0.2); color: var(--success); }
+        .badge.warning { background: rgba(243,156,18,0.2); color: var(--warning); }
+        .badge.danger { background: rgba(231,76,60,0.2); color: var(--danger); }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        .chart-label { width: 100px; font-weight: 600; font-size: 11px; }
+        .chart-fill {
+            flex: 1;
+            height: 20px;
+            background: linear-gradient(to right, var(--primary), #ff9800);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 10px;
+        }
+
+        .currency-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 8px;
+        }
+        .currency-toggle button {
+            flex: 1;
+            margin: 0;
+            border-radius: 0;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 8px;
+        }
+        .currency-toggle button.active { background: var(--primary); color: white; }
+        .currency-toggle button:first-child { border-radius: 4px 0 0 4px; }
+        .currency-toggle button:last-child { border-radius: 0 4px 4px 0; }
+
+        .add-ingredient {
+            background: #f0f0f0;
+            border: 1px dashed var(--border);
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        .add-ingredient-row {
+            display: grid;
+            grid-template-columns: 1fr 60px;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .remove-btn {
+            background: var(--danger);
+            padding: 6px 8px;
+            font-size: 11px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1>🍔 Burger Shop</h1>
+        <p>Нячанг • Неделя <span id="week-number">40</span></p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab(0)">📋 Меню</button>
+        <button class="tab" onclick="showTab(1)">📊 Обзор</button>
+        <button class="tab" onclick="showTab(2)">🔄 Смена</button>
+        <button class="tab" onclick="showTab(3)">📦 Товары</button>
+        <button class="tab" onclick="showTab(4)">💰 Финансы</button>
+        <button class="tab" onclick="showTab(5)">⚙️ Техкарты</button>
+    </div>
+
+    <div class="content">
+        <!-- TAB 0: МЕНЮ ТЕХКАРТ -->
+        <div class="section active">
+            <div class="card">
+                <div class="card-title">📋 Меню блюд</div>
+            </div>
+            <div id="menu-cards"></div>
+        </div>
+
+        <!-- TAB 1: ОБЗОР -->
+        <div class="section">
+            <div class="currency-toggle">
+                <button class="active" onclick="setCurrency('vnd')">₫ VND</button>
+                <button onclick="setCurrency('rub')">₽ RUB</button>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Выручка</div>
+                    <div class="card-value" id="revenue-display">0</div>
+                    <div class="card-detail">неделя</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Маржа</div>
+                    <div class="card-value" id="margin-display">0%</div>
+                    <div class="card-detail">средняя</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Популярность</div>
+                <div id="popularity-chart"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: СМЕНА -->
+        <div class="section">
+            <div id="shift-status-card" class="card">
+                <div class="card-title" id="shift-title">❌ Смена не начата</div>
+                <button id="shift-btn" onclick="toggleShift()" style="background:var(--success);">▶ Начать</button>
+            </div>
+
+            <div id="shift-active" style="display:none;">
+                <div class="card">
+                    <div class="card-title">Продажи</div>
+                    <div id="shift-recipes"></div>
+                    <button onclick="saveShiftSales()">💾 Сохранить</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Себестоимость</div>
+                    <div class="card-value" id="shift-cost">0 ₫</div>
+                    <div class="card-detail" id="shift-margin">маржа: —</div>
+                </div>
+                <button onclick="endShift()" style="background:var(--danger);">⏹ Завершить</button>
+            </div>
+
+            <div id="shift-summary" style="display:none;" class="card">
+                <div class="card-title">✅ Смена завершена</div>
+                <table id="shift-table"></table>
+                <button onclick="startNew()">▶ Новая</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: ТОВАРЫ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">Остатки</div>
+                <table>
+                    <thead><tr><th>Товар</th><th style="text-align:right;">Кол-во</th><th style="text-align:center;">Статус</th></tr></thead>
+                    <tbody id="inv-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: ФИНАНСЫ -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">Рентабельность</div>
+                <table>
+                    <thead><tr><th>Блюдо</th><th style="text-align:right;">Маржа</th><th style="text-align:right;">Прибыль</th></tr></thead>
+                    <tbody id="profit-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 5: ТЕХКАРТЫ (РЕДАКТОР) -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">✏️ Редактор техкарт</div>
+                <button onclick="openNewRecipeForm()">➕ Новая техкарта</button>
+            </div>
+
+            <div id="recipe-form" class="card" style="display:none;">
+                <div class="card-title">Создание техкарты</div>
+
+                <div>
+                    <label>Название блюда:</label>
+                    <input type="text" id="form-name" placeholder="Например: Классический бургер">
+                </div>
+
+                <div>
+                    <label>Цена (₫):</label>
+                    <input type="number" id="form-price" placeholder="165000" step="1000">
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label>Калории:</label>
+                        <input type="number" id="form-cal" placeholder="650">
+                    </div>
+                    <div>
+                        <label>Время (мин):</label>
+                        <input type="number" id="form-time" placeholder="10">
+                    </div>
+                </div>
+
+                <div>
+                    <label>БЖУ (белки/жиры/углеводы через запятую):</label>
+                    <input type="text" id="form-bzhu" placeholder="28/32/45">
+                </div>
+
+                <div>
+                    <label>Ингредиенты:</label>
+                    <div id="ingredients-list"></div>
+                    <button class="small" onclick="addIngredientField()">+ Ингредиент</button>
+                </div>
+
+                <div style="display:flex;gap:6px;margin-top:8px;">
+                    <button onclick="saveNewRecipe()">💾 Сохранить</button>
+                    <button class="secondary" onclick="closeRecipeForm()">✕ Отмена</button>
+                </div>
+            </div>
+
+            <div id="recipes-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО БЖУ -->
+<div id="bzhu-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span id="modal-title">БЖУ</span>
+            <button class="modal-close" onclick="closeBzhuModal()">✕</button>
+        </div>
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<script>
+// STATE
+let currentCurrency = 'vnd';
+const exchangeRate = 0.0025;
+const STORAGE_RECIPES = 'burgerShop_recipes';
+const STORAGE_WEEK = 'burgerShop_week_';
+const STORAGE_INV = 'burgerShop_inventory';
+const STORAGE_SHIFT = 'burgerShop_shift';
+
+// DEFAULT RECIPES
+const defaultRecipes = [
+    {
+        id: 'burger_classic',
+        name: '🍔 Классический',
+        price: 165000,
+        cal: 650,
+        bzhu: '28/32/45',
+        time: 10,
+        ingredients: [
+            { name: 'Булка', weight: 75, unit: 'г', price: 800 },
+            { name: 'Фарш', weight: 200, unit: 'г', price: 280 },
+            { name: 'Огурец', weight: 20, unit: 'г', price: 15 },
+            { name: 'Помидор', weight: 15, unit: 'г', price: 20 },
+            { name: 'Салат', weight: 10, unit: 'г', price: 25 }
+        ]
+    },
+    {
+        id: 'burger_double',
+        name: '🔥 Двойной',
+        price: 245000,
+        cal: 950,
+        bzhu: '48/52/58',
+        time: 15,
+        ingredients: [
+            { name: 'Булка', weight: 75, unit: 'г', price: 800 },
+            { name: 'Фарш', weight: 400, unit: 'г', price: 280 },
+            { name: 'Огурец', weight: 30, unit: 'г', price: 15 },
+            { name: 'Помидор', weight: 25, unit: 'г', price: 20 }
+        ]
+    },
+    {
+        id: 'burger_vegan',
+        name: '🌱 Овощной',
+        price: 135000,
+        cal: 580,
+        bzhu: '18/22/62',
+        time: 12,
+        ingredients: [
+            { name: 'Булка', weight: 75, unit: 'г', price: 800 },
+            { name: 'Грибы', weight: 120, unit: 'г', price: 45 },
+            { name: 'Авокадо', weight: 30, unit: 'г', price: 120 },
+            { name: 'Овощи', weight: 50, unit: 'г', price: 25 }
+        ]
+    },
+    {
+        id: 'fries',
+        name: '🍟 Фри',
+        price: 75000,
+        cal: 380,
+        bzhu: '5/18/48',
+        time: 5,
+        ingredients: [
+            { name: 'Картофель', weight: 250, unit: 'г', price: 12 },
+            { name: 'Масло', weight: 50, unit: 'мл', price: 30 },
+            { name: 'Специи', weight: 2, unit: 'г', price: 10 }
+        ]
+    }
+];
+
+const defaultInventory = {
+    'Булка': 120,
+    'Фарш': 8.2,
+    'Огурец': 3.1,
+    'Помидор': 2.8,
+    'Салат': 1.5,
+    'Грибы': 2.0,
+    'Авокадо': 1.2,
+    'Картофель': 10,
+    'Масло': 5
+};
+
+let recipes = JSON.parse(localStorage.getItem(STORAGE_RECIPES)) || defaultRecipes;
+let inventory = JSON.parse(localStorage.getItem(STORAGE_INV)) || defaultInventory;
+let currentShift = JSON.parse(localStorage.getItem(STORAGE_SHIFT)) || null;
+let weeklySales = {};
+
+function getWeekKey() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const diff = now - start;
+    const week = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
+    return now.getFullYear() + '-W' + week;
+}
+
+function loadWeeklySales() {
+    weeklySales = JSON.parse(localStorage.getItem(STORAGE_WEEK + getWeekKey())) || {};
+}
+
+function saveWeeklySales() {
+    localStorage.setItem(STORAGE_WEEK + getWeekKey(), JSON.stringify(weeklySales));
+}
+
+function saveRecipes() {
+    localStorage.setItem(STORAGE_RECIPES, JSON.stringify(recipes));
+    renderMenuCards();
+    renderRecipesList();
+}
+
+// UI
+function showTab(i) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section')[i].classList.add('active');
+    document.querySelectorAll('.tab')[i].classList.add('active');
+}
+
+function setCurrency(c) {
+    currentCurrency = c;
+    document.querySelectorAll('.currency-toggle button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    updateDashboard();
+}
+
+function formatCurrency(amount) {
+    if (currentCurrency === 'vnd') {
+        return Math.round(amount).toLocaleString('vi-VN') + ' ₫';
+    } else {
+        return Math.round(amount * exchangeRate).toLocaleString('ru-RU') + ' ₽';
+    }
+}
+
+function openBzhuModal(recipe) {
+    const [p, j, u] = recipe.bzhu.split('/');
+    let html = `
+        <div style="font-size:12px;">
+            <div style="margin-bottom:8px;"><strong>${recipe.cal} ккал</strong></div>
+            <table style="font-size:11px;width:100%;">
+                <tr><td>Белки:</td><td style="text-align:right;"><strong>${p}г</strong></td></tr>
+                <tr><td>Жиры:</td><td style="text-align:right;"><strong>${j}г</strong></td></tr>
+                <tr><td>Углеводы:</td><td style="text-align:right;"><strong>${u}г</strong></td></tr>
+            </table>
+        </div>
+    `;
+    document.getElementById('modal-title').textContent = recipe.name;
+    document.getElementById('modal-body').innerHTML = html;
+    document.getElementById('bzhu-modal').classList.add('active');
+}
+
+function closeBzhuModal() {
+    document.getElementById('bzhu-modal').classList.remove('active');
+}
+
+// МЕНЮ
+function renderMenuCards() {
+    const container = document.getElementById('menu-cards');
+    container.innerHTML = recipes.map(r => {
+        const [p, j, u] = r.bzhu.split('/');
+        const cost = calculateRecipeCost(r);
+        return `
+            <div class="recipe-card">
+                <div class="recipe-header">
+                    <div class="recipe-name">${r.name}</div>
+                    <div class="recipe-price">${formatCurrency(r.price)}</div>
+                </div>
+                <div class="recipe-content">
+                    ${r.ingredients.map(ing => `
+                        <div class="recipe-ingredient">
+                            <span class="recipe-ingredient-name">${ing.name}</span>
+                            <span class="recipe-ingredient-amount">${ing.weight}${ing.unit}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="recipe-footer">
+                    <span class="time-badge">⏱️ ${r.time}м</span>
+                    <span class="kbzhu-badge" onclick="openBzhuModal({...event.currentTarget.parentElement.parentElement, name: '${r.name}', cal: ${r.cal}, bzhu: '${r.bzhu}'})">
+                        ${r.cal}кал
+                    </span>
+                    <span class="badge success" style="cursor:pointer;" onclick="openBzhuModal({...event.currentTarget.parentElement.parentElement, name: '${r.name}', cal: ${r.cal}, bzhu: '${r.bzhu}'})">БЖУ</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ТЕХКАРТЫ РЕДАКТОР
+function openNewRecipeForm() {
+    document.getElementById('recipe-form').style.display = 'block';
+    document.getElementById('ingredients-list').innerHTML = '';
+    addIngredientField();
+}
+
+function closeRecipeForm() {
+    document.getElementById('recipe-form').style.display = 'none';
+}
+
+function addIngredientField() {
+    const list = document.getElementById('ingredients-list');
+    const id = 'ing-' + Date.now();
+    const row = document.createElement('div');
+    row.className = 'add-ingredient-row';
+    row.id = id;
+    row.innerHTML = `
+        <input type="text" placeholder="Название" class="ing-name">
+        <input type="text" placeholder="100г" class="ing-amount">
+    `;
+    list.appendChild(row);
+}
+
+function saveNewRecipe() {
+    const name = document.getElementById('form-name').value;
+    const price = parseInt(document.getElementById('form-price').value);
+    const cal = parseInt(document.getElementById('form-cal').value);
+    const time = parseInt(document.getElementById('form-time').value);
+    const bzhu = document.getElementById('form-bzhu').value;
+
+    if (!name || !price || !cal || !bzhu) {
+        alert('Заполни все поля');
+        return;
+    }
+
+    const ingredients = [];
+    document.querySelectorAll('.ing-name').forEach((inp, i) => {
+        const amount = document.querySelectorAll('.ing-amount')[i].value;
+        if (inp.value && amount) {
+            const [w, u] = amount.match(/(\d+)(\D+)/).slice(1);
+            ingredients.push({
+                name: inp.value,
+                weight: parseInt(w),
+                unit: u,
+                price: 100
+            });
+        }
+    });
+
+    if (ingredients.length === 0) {
+        alert('Добавь ингредиенты');
+        return;
+    }
+
+    const newRecipe = {
+        id: 'recipe_' + Date.now(),
+        name: name,
+        price: price,
+        cal: cal,
+        bzhu: bzhu,
+        time: time,
+        ingredients: ingredients
+    };
+
+    recipes.push(newRecipe);
+    saveRecipes();
+    closeRecipeForm();
+    alert('✅ Техкарта сохранена!');
+}
+
+function deleteRecipe(id) {
+    if (confirm('Удалить техкарту?')) {
+        recipes = recipes.filter(r => r.id !== id);
+        saveRecipes();
+    }
+}
+
+function renderRecipesList() {
+    const list = document.getElementById('recipes-list');
+    list.innerHTML = recipes.slice(4).map(r => `
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div class="card-title">${r.name}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">${r.price.toLocaleString('vi-VN')}₫ • ${r.cal}кал • ${r.time}м</div>
+                </div>
+                <button class="small" style="background:var(--danger);width:auto;" onclick="deleteRecipe('${r.id}')">✕</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// SHIFT
+function toggleShift() {
+    if (!currentShift) {
+        currentShift = {
+            start: new Date().toISOString(),
+            sales: {}
+        };
+        localStorage.setItem(STORAGE_SHIFT, JSON.stringify(currentShift));
+        updateShiftUI();
+    } else {
+        endShift();
+    }
+}
+
+function updateShiftUI() {
+    if (!currentShift) {
+        document.getElementById('shift-status-card').style.display = 'block';
+        document.getElementById('shift-active').style.display = 'none';
+        document.getElementById('shift-summary').style.display = 'none';
+    } else {
+        document.getElementById('shift-status-card').style.display = 'none';
+        document.getElementById('shift-active').style.display = 'block';
+        document.getElementById('shift-summary').style.display = 'none';
+
+        const html = recipes.map(r => `
+            <div style="margin-bottom:6px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                    <div style="font-size:11px;font-weight:600;">${r.name}</div>
+                    <input type="number" value="${currentShift.sales[r.id] || 0}" onchange="currentShift.sales['${r.id}'] = parseInt(this.value); calculateShiftCost();" style="width:50px;padding:4px;font-size:11px;">
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('shift-recipes').innerHTML = html;
+        calculateShiftCost();
+    }
+}
+
+function calculateShiftCost() {
+    let revenue = 0, cost = 0;
+    Object.entries(currentShift.sales).forEach(([id, qty]) => {
+        const r = recipes.find(x => x.id === id);
+        if (r && qty > 0) {
+            revenue += r.price * qty;
+            const c = calculateRecipeCost(r);
+            cost += c.real_cost * qty;
+        }
+    });
+
+    document.getElementById('shift-cost').textContent = formatCurrency(cost);
+    const margin = revenue > 0 ? ((revenue - cost) / revenue * 100).toFixed(1) : 0;
+    document.getElementById('shift-margin').textContent = `маржа: ${margin}%`;
+}
+
+function calculateRecipeCost(r) {
+    let cost = 0;
+    r.ingredients.forEach(ing => {
+        cost += ing.weight * (ing.price / 1000);
+    });
+    return { base_cost: cost, real_cost: cost * 1.1 };
+}
+
+function saveShiftSales() {
+    if (Object.values(currentShift.sales).every(v => v === 0)) {
+        alert('Введи продажи');
+        return;
+    }
+    const today = new Date().toISOString().split('T')[0];
+    if (!weeklySales[today]) weeklySales[today] = [];
+    Object.entries(currentShift.sales).forEach(([id, qty]) => {
+        if (qty > 0) weeklySales[today].push({ id, qty });
+    });
+    saveWeeklySales();
+    alert('✅ Сохранено');
+}
+
+function endShift() {
+    saveShiftSales();
+    document.getElementById('shift-active').style.display = 'none';
+    document.getElementById('shift-summary').style.display = 'block';
+    const today = new Date().toISOString().split('T')[0];
+    let html = '<tr><td colspan="2" style="font-weight:600;border-bottom:1px solid var(--border);padding:6px 0;">Продажи</td></tr>';
+    if (weeklySales[today]) {
+        weeklySales[today].forEach(s => {
+            const r = recipes.find(x => x.id === s.id);
+            html += `<tr><td style="font-size:11px;">${r.name}</td><td style="text-align:right;font-size:11px;">${s.qty} шт</td></tr>`;
+        });
+    }
+    document.getElementById('shift-table').innerHTML = html;
+    currentShift = null;
+    localStorage.removeItem(STORAGE_SHIFT);
+}
+
+function startNew() {
+    currentShift = null;
+    updateShiftUI();
+}
+
+// DASHBOARD
+function updateDashboard() {
+    loadWeeklySales();
+    let totalRev = 0, totalCost = 0, sales = {};
+
+    Object.values(weeklySales).forEach(day => {
+        day.forEach(s => {
+            const r = recipes.find(x => x.id === s.id);
+            if (!r) return;
+            totalRev += r.price * s.qty;
+            const c = calculateRecipeCost(r);
+            totalCost += c.real_cost * s.qty;
+
+            if (!sales[s.id]) sales[s.id] = 0;
+            sales[s.id] += s.qty;
+        });
+    });
+
+    document.getElementById('revenue-display').textContent = formatCurrency(totalRev);
+    const margin = totalRev > 0 ? ((totalRev - totalCost) / totalRev * 100).toFixed(0) : 0;
+    document.getElementById('margin-display').textContent = margin + '%';
+
+    const total = Object.values(sales).reduce((a, b) => a + b, 0) || 1;
+    let popHtml = '';
+    Object.entries(sales).forEach(([id, qty]) => {
+        const r = recipes.find(x => x.id === id);
+        const pct = (qty / total * 100).toFixed(0);
+        popHtml += `<div class="chart-bar"><div class="chart-label">${r.name}</div><div class="chart-fill" style="width:${pct}%;"><span>${pct}%</span></div></div>`;
+    });
+    document.getElementById('popularity-chart').innerHTML = popHtml;
+
+    // Profit table
+    let html = '';
+    recipes.forEach(r => {
+        const c = calculateRecipeCost(r);
+        const profit = r.price - c.real_cost;
+        const margin = (profit / r.price * 100).toFixed(1);
+        html += `<tr><td style="font-size:11px;">${r.name}</td><td style="text-align:right;font-size:11px;"><span class="badge success">${margin}%</span></td><td style="text-align:right;font-size:11px;">${formatCurrency(profit)}</td></tr>`;
+    });
+    document.getElementById('profit-table').innerHTML = html;
+
+    // Inventory
+    html = '';
+    Object.entries(inventory).forEach(([name, qty]) => {
+        const status = qty < 2 ? 'danger' : (qty < 5 ? 'warning' : 'success');
+        const icon = qty < 2 ? '⚠️' : '✅';
+        html += `<tr><td style="font-size:11px;">${name}</td><td style="text-align:right;font-size:11px;">${qty}</td><td style="text-align:center;"><span class="badge ${status}">${icon}</span></td></tr>`;
+    });
+    document.getElementById('inv-table').innerHTML = html;
+}
+
+// INIT
+function init() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const diff = now - start;
+    const week = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
+    document.getElementById('week-number').textContent = week;
+
+    loadWeeklySales();
+    renderMenuCards();
+    renderRecipesList();
+    updateShiftUI();
+    updateDashboard();
+}
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
