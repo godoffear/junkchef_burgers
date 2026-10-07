@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ff6b35">
+    <title>🍔 Burger Shop CRM</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --primary-light: #ff8c61;
+            --primary-dark: #e85a27;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --surface-0: #f8f9fa;
+            --surface-1: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --text-light: #999;
+            --border: #e0e0e0;
+            --divider: #efefef;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface-0: #0f0f0f;
+                --surface-1: #1a1a1a;
+                --text-primary: #ffffff;
+                --text-secondary: #bbb;
+                --text-light: #888;
+                --border: #333;
+                --divider: #222;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface-0);
+            color: var(--text-primary);
+        }
+
+        .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 16px;
+            padding-top: calc(16px + env(safe-area-inset-top, 0));
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .header-title { font-size: 20px; font-weight: 700; }
+        .header-time { font-size: 12px; opacity: 0.9; }
+
+        .header-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.15);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-label { font-size: 10px; opacity: 0.8; }
+        .stat-value { font-size: 16px; font-weight: 700; margin-top: 2px; }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            background: var(--surface-1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(255,107,53,0.05);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .order-card {
+            background: var(--surface-1);
+            border: 2px solid var(--divider);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .order-card.new { border-left: 4px solid var(--info); }
+        .order-card.preparing { border-left: 4px solid var(--warning); background: rgba(243,156,18,0.05); }
+        .order-card.ready { border-left: 4px solid var(--success); background: rgba(46,204,113,0.05); }
+        .order-card.delivered { border-left: 4px solid #999; opacity: 0.7; }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .order-id { font-weight: 700; font-size: 13px; }
+        .order-time { font-size: 11px; color: var(--text-light); }
+        .order-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .status-new { background: #e3f2fd; color: #1976d2; }
+        .status-preparing { background: #fff3e0; color: #e65100; }
+        .status-ready { background: #e8f5e9; color: #2e7d32; }
+        .status-delivered { background: #f5f5f5; color: #666; }
+
+        .order-items {
+            margin: 8px 0;
+            padding: 8px 0;
+            border-top: 1px solid var(--divider);
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 0;
+        }
+
+        .order-item-name { font-weight: 500; }
+        .order-item-qty { color: var(--text-light); }
+        .order-item-price { font-weight: 600; color: var(--primary); }
+
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 13px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--divider);
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .order-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 11px;
+            margin: 0;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 6px 0;
+        }
+
+        button:hover { background: var(--primary-dark); }
+        button.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+        }
+        button.small {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 11px;
+            margin: 0;
+        }
+
+        button.success { background: var(--success); }
+        button.warning { background: var(--warning); }
+        button.danger { background: var(--danger); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal.active { display: flex; align-items: flex-end; justify-content: center; }
+        .modal-content {
+            background: var(--surface-1);
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px 16px 0 0;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .modal-title { font-weight: 700; font-size: 16px; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            width: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+
+        .recipe-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--surface-0);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .recipe-item:active { background: var(--divider); }
+        .recipe-item.selected { background: rgba(255,107,53,0.1); border: 2px solid var(--primary); }
+
+        .recipe-name { font-weight: 600; }
+        .recipe-price { color: var(--primary); font-weight: 700; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-label { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+        .stat-value { font-size: 22px; font-weight: 700; color: var(--primary); }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge.success { background: #e8f5e9; color: #2e7d32; }
+        .badge.warning { background: #fff3e0; color: #e65100; }
+
+        .alert {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            border-left: 4px solid;
+        }
+
+        .alert.success { background: #e8f5e9; border-left-color: var(--success); color: #2e7d32; }
+        .alert.warning { background: #fff3e0; border-left-color: var(--warning); color: #e65100; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 8px;
+            background: var(--surface-0);
+            font-weight: 700;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid var(--divider);
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-top">
+            <div class="header-title">🍔 Burger Shop CRM</div>
+            <div class="header-time" id="current-time">12:45</div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-label">📦 Заказов</div>
+                <div class="stat-value" id="orders-count">12</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">👨‍🍳 Готовится</div>
+                <div class="stat-value" id="preparing-count">3</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">💰 Сегодня</div>
+                <div class="stat-value" id="today-revenue">₫1.8M</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab active" onclick="showTab(0)">📋 Заказы</button>
+        <button class="tab" onclick="showTab(1)">📊 Статистика</button>
+        <button class="tab" onclick="showTab(2)">📈 История</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- TAB 0: ORDERS -->
+        <div class="section active">
+            <button onclick="openNewOrderModal()" style="background:var(--success);font-size:14px;padding:14px;">➕ Новый заказ</button>
+
+            <div class="card">
+                <div class="card-title">🆕 Новые заказы</div>
+                <div id="new-orders"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">👨‍🍳 Готовится</div>
+                <div id="preparing-orders"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">✅ Готовые</div>
+                <div id="ready-orders"></div>
+            </div>
+        </div>
+
+        <!-- TAB 1: STATS -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">📊 Статистика дня</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Всего заказов</div>
+                        <div class="stat-value" id="stat-total">47</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Выручка</div>
+                        <div class="stat-value" id="stat-revenue">₫1.8M</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🥇 Популярные блюда</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Блюдо</th>
+                            <th style="text-align:right;">Кол-во</th>
+                            <th style="text-align:right;">Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table">
+                        <tr>
+                            <td>🍔 Классический</td>
+                            <td style="text-align:right;">21</td>
+                            <td style="text-align:right;">₫3.465M</td>
+                        </tr>
+                        <tr>
+                            <td>🔥 Двойной</td>
+                            <td style="text-align:right;">12</td>
+                            <td style="text-align:right;">₫2.940M</td>
+                        </tr>
+                        <tr>
+                            <td>🍟 Картофель</td>
+                            <td style="text-align:right;">8</td>
+                            <td style="text-align:right;">₫600K</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: HISTORY -->
+        <div class="section">
+            <div class="card">
+                <div class="card-title">📜 История заказов за день</div>
+                <div id="history-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Новый заказ -->
+<div id="order-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title">Новый заказ</span>
+            <button class="modal-close" onclick="closeOrderModal()">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label>Имя клиента (опционально):</label>
+            <input type="text" id="customer-name" placeholder="Иван">
+        </div>
+
+        <div class="form-group">
+            <label>Способ доставки:</label>
+            <select id="delivery-type">
+                <option value="pickup">🏪 Самовывоз</option>
+                <option value="delivery">🚚 Доставка (Grab)</option>
+                <option value="food_app">📱 FoodApp</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Выберите блюда:</label>
+            <div id="recipes-list"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Сумма: <span id="order-total" style="color:var(--primary);font-weight:700;">₫0</span></label>
+            <div class="alert warning">⚠️ Укажите количество каждого блюда ниже</div>
+            <div id="selected-items"></div>
+        </div>
+
+        <button onclick="createOrder()" style="background:var(--success);font-size:14px;padding:14px;">✅ Создать заказ</button>
+        <button class="secondary" onclick="closeOrderModal()">Отмена</button>
+    </div>
+</div>
+
+<script>
+// DEMO DATA & STATE
+const recipes = [
+    { id: 1, name: '🍔 Классический', price: 165000, time: 10 },
+    { id: 2, name: '🔥 Двойной', price: 245000, time: 15 },
+    { id: 3, name: '🌱 Овощной', price: 135000, time: 12 },
+    { id: 4, name: '🍟 Картофель', price: 75000, time: 5 }
+];
+
+let orders = JSON.parse(localStorage.getItem('orders')) || [];
+let selectedRecipes = {};
+let orderIdCounter = JSON.parse(localStorage.getItem('orderIdCounter')) || 1000;
+
+// INIT DEMO DATA
+function initDemoData() {
+    if (localStorage.getItem('demo-initialized')) return;
+
+    orders = [
+        { id: '#1001', customer: 'Иван', items: [{id:1,qty:2},{id:4,qty:1}], total: 405000, status: 'delivered', time: '11:30', type: 'pickup' },
+        { id: '#1002', customer: 'Мария', items: [{id:2,qty:1},{id:3,qty:1}], total: 380000, status: 'delivered', time: '11:45', type: 'delivery' },
+        { id: '#1003', customer: 'Петр', items: [{id:1,qty:3}], total: 495000, status: 'delivered', time: '12:15', type: 'pickup' },
+        { id: '#1004', customer: 'Анна', items: [{id:2,qty:1},{id:4,qty:2}], total: 395000, status: 'ready', time: '12:30', type: 'delivery' },
+        { id: '#1005', customer: 'Сергей', items: [{id:1,qty:1},{id:4,qty:1}], total: 240000, status: 'preparing', time: '12:35', type: 'pickup' },
+        { id: '#1006', customer: '', items: [{id:3,qty:2}], total: 270000, status: 'preparing', time: '12:40', type: 'food_app' },
+        { id: '#1007', customer: 'Елена', items: [{id:1,qty:2}], total: 330000, status: 'new', time: '12:42', type: 'delivery' },
+        { id: '#1008', customer: '', items: [{id:2,qty:1}], total: 245000, status: 'new', time: '12:43', type: 'pickup' },
+        { id: '#1009', customer: 'Дмитрий', items: [{id:1,qty:1},{id:3,qty:1},{id:4,qty:1}], total: 375000, status: 'new', time: '12:44', type: 'delivery' },
+    ];
+
+    localStorage.setItem('orders', JSON.stringify(orders));
+    localStorage.setItem('demo-initialized', 'true');
+}
+
+// UI FUNCTIONS
+function showTab(i) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section')[i].classList.add('active');
+    document.querySelectorAll('.tab')[i].classList.add('active');
+}
+
+function openNewOrderModal() {
+    selectedRecipes = {};
+    document.getElementById('order-modal').classList.add('active');
+    renderRecipesList();
+    renderSelectedItems();
+}
+
+function closeOrderModal() {
+    document.getElementById('order-modal').classList.remove('active');
+    selectedRecipes = {};
+}
+
+function renderRecipesList() {
+    const html = recipes.map(r => `
+        <div class="recipe-item" onclick="toggleRecipe(${r.id})">
+            <div>
+                <div class="recipe-name">${r.name}</div>
+                <div style="font-size:11px;color:var(--text-light);">⏱️ ${r.time}м</div>
+            </div>
+            <div class="recipe-price">₫${(r.price/1000).toFixed(0)}K</div>
+        </div>
+    `).join('');
+    document.getElementById('recipes-list').innerHTML = html;
+}
+
+function toggleRecipe(id) {
+    if (selectedRecipes[id]) {
+        delete selectedRecipes[id];
+    } else {
+        selectedRecipes[id] = 1;
+    }
+    renderSelectedItems();
+}
+
+function renderSelectedItems() {
+    let total = 0;
+    const html = Object.entries(selectedRecipes).map(([id, qty]) => {
+        const recipe = recipes.find(r => r.id == id);
+        const itemTotal = recipe.price * qty;
+        total += itemTotal;
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface-0);border-radius:6px;margin-bottom:6px;">
+                <div>
+                    <div style="font-weight:600;font-size:12px;">${recipe.name}</div>
+                    <input type="number" value="${qty}" min="1" onchange="selectedRecipes[${id}]=parseInt(this.value);renderSelectedItems();" style="width:50px;padding:4px;font-size:11px;margin-top:4px;">
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:700;color:var(--primary);">₫${(itemTotal/1000).toFixed(0)}K</div>
+                    <button class="small" style="background:var(--danger);padding:4px 6px;margin:4px 0 0 0;" onclick="delete selectedRecipes[${id}];renderSelectedItems();">✕</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('order-total').textContent = '₫' + (total/1000).toFixed(0) + 'K';
+    document.getElementById('selected-items').innerHTML = html;
+}
+
+function createOrder() {
+    if (Object.keys(selectedRecipes).length === 0) {
+        alert('Добавь хотя бы одно блюдо!');
+        return;
+    }
+
+    orderIdCounter++;
+    const items = Object.entries(selectedRecipes).map(([id, qty]) => ({ id: parseInt(id), qty }));
+    const total = items.reduce((sum, item) => {
+        const recipe = recipes.find(r => r.id === item.id);
+        return sum + (recipe.price * item.qty);
+    }, 0);
+
+    const now = new Date();
+    const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+    const order = {
+        id: '#' + orderIdCounter,
+        customer: document.getElementById('customer-name').value || 'Гость',
+        items: items,
+        total: total,
+        status: 'new',
+        time: time,
+        type: document.getElementById('delivery-type').value
+    };
+
+    orders.unshift(order);
+    localStorage.setItem('orders', JSON.stringify(orders));
+    localStorage.setItem('orderIdCounter', JSON.stringify(orderIdCounter));
+
+    closeOrderModal();
+    renderOrders();
+    updateStats();
+
+    alert('✅ Заказ ' + order.id + ' создан!');
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+        order.status = newStatus;
+        localStorage.setItem('orders', JSON.stringify(orders));
+        renderOrders();
+        updateStats();
+    }
+}
+
+function renderOrderCard(order) {
+    const statusClass = `order-card ${order.status}`;
+    const statusBadge = {
+        'new': { text: '🆕 Новый', class: 'status-new' },
+        'preparing': { text: '👨‍🍳 Готовится', class: 'status-preparing' },
+        'ready': { text: '✅ Готово', class: 'status-ready' },
+        'delivered': { text: '📦 Завершён', class: 'status-delivered' }
+    }[order.status];
+
+    const itemsHtml = order.items.map(item => {
+        const recipe = recipes.find(r => r.id === item.id);
+        const itemTotal = recipe.price * item.qty;
+        return `
+            <div class="order-item">
+                <span class="order-item-name">${recipe.name}</span>
+                <span class="order-item-qty">x${item.qty}</span>
+                <span class="order-item-price">₫${(itemTotal/1000).toFixed(0)}K</span>
+            </div>
+        `;
+    }).join('');
+
+    let actionsHtml = '';
+    if (order.status === 'new') {
+        actionsHtml = `<button class="warning small" onclick="updateOrderStatus('${order.id}','preparing')">👨‍🍳 Готовить</button>`;
+    } else if (order.status === 'preparing') {
+        actionsHtml = `<button class="success small" onclick="updateOrderStatus('${order.id}','ready')">✅ Готово</button>`;
+    } else if (order.status === 'ready') {
+        actionsHtml = `<button class="success small" onclick="updateOrderStatus('${order.id}','delivered')">📦 Выдано</button>`;
+    }
+
+    const typeEmoji = { 'pickup': '🏪', 'delivery': '🚚', 'food_app': '📱' }[order.type];
+
+    return `
+        <div class="${statusClass}">
+            <div class="order-header">
+                <div>
+                    <div class="order-id">${order.id}</div>
+                    <div class="order-time">${typeEmoji} ${order.customer || 'Гость'} • ${order.time}</div>
+                </div>
+                <span class="order-status ${statusBadge.class}">${statusBadge.text}</span>
+            </div>
+            <div class="order-items">${itemsHtml}</div>
+            <div class="order-total">
+                <span>ИТОГО:</span>
+                <span>₫${(order.total/1000).toFixed(0)}K</span>
+            </div>
+            ${actionsHtml ? '<div class="order-actions">' + actionsHtml + '</div>' : ''}
+        </div>
+    `;
+}
+
+function renderOrders() {
+    const newOrders = orders.filter(o => o.status === 'new');
+    const preparingOrders = orders.filter(o => o.status === 'preparing');
+    const readyOrders = orders.filter(o => o.status === 'ready');
+
+    document.getElementById('new-orders').innerHTML = newOrders.length ? newOrders.map(o => renderOrderCard(o)).join('') : '<div style="text-align:center;color:var(--text-light);padding:20px;">Нет новых заказов</div>';
+    document.getElementById('preparing-orders').innerHTML = preparingOrders.length ? preparingOrders.map(o => renderOrderCard(o)).join('') : '<div style="text-align:center;color:var(--text-light);padding:20px;">Ничего не готовится</div>';
+    document.getElementById('ready-orders').innerHTML = readyOrders.length ? readyOrders.map(o => renderOrderCard(o)).join('') : '<div style="text-align:center;color:var(--text-light);padding:20px;">Нет готовых заказов</div>';
+}
+
+function updateStats() {
+    const newCount = orders.filter(o => o.status === 'new').length;
+    const preparingCount = orders.filter(o => o.status === 'preparing').length;
+    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+
+    document.getElementById('orders-count').textContent = orders.length;
+    document.getElementById('preparing-count').textContent = preparingCount;
+    document.getElementById('today-revenue').textContent = '₫' + (totalRevenue/1000000).toFixed(1) + 'M';
+    document.getElementById('stat-total').textContent = orders.length;
+    document.getElementById('stat-revenue').textContent = '₫' + (totalRevenue/1000000).toFixed(1) + 'M';
+}
+
+function renderHistory() {
+    const deliveredOrders = orders.filter(o => o.status === 'delivered').reverse();
+    const html = deliveredOrders.map(o => {
+        const itemsList = o.items.map(item => {
+            const recipe = recipes.find(r => r.id === item.id);
+            return recipe.name + ' x' + item.qty;
+        }).join(', ');
+
+        return `
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <div>
+                        <div style="font-weight:700;">${o.id}</div>
+                        <div style="font-size:11px;color:var(--text-light);">${o.customer} • ${o.time}</div>
+                    </div>
+                    <div style="text-align:right;font-weight:700;color:var(--primary);">₫${(o.total/1000).toFixed(0)}K</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);">${itemsList}</div>
+                <span class="badge success" style="margin-top:8px;display:inline-block;">✅ Завершён</span>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('history-list').innerHTML = html || '<div style="text-align:center;color:var(--text-light);padding:20px;">История пуста</div>';
+}
+
+// UPDATE TIME
+setInterval(() => {
+    const now = new Date();
+    const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    document.getElementById('current-time').textContent = time;
+}, 1000);
+
+// INIT
+window.addEventListener('load', () => {
+    initDemoData();
+    renderOrders();
+    updateStats();
+    renderHistory();
+});
+</script>
+</body>
+</html>
